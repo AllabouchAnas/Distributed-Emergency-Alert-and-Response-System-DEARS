@@ -62,8 +62,8 @@ In accordance with project requirements, a distributed architecture is not only 
 | **Backend (Dispatcher)** | Python | `xmlrpc.client` (Python standard library for RPC) |
 | **Web Interface (Frontend)** | Python | Django |
 | **Web -> Dispatcher Communication** | REST (HTTP) | REST API provided by Django |
-| **Database** | SQL | MySQL (Single choice) |
-| **Version Control** | Git | GitHub (Mandatory) |
+| **Database** | SQL | PostgreSQL |
+| **Version Control** | Git | GitHub |
 
 ### 3.3 Detailed Architecture and Data Flow
 
