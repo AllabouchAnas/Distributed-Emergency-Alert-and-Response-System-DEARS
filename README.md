@@ -240,3 +240,129 @@ Deployment Considerations (concise)
 - Scalability: Stateless web and dispatcher layers can be load-balanced; RPC services scale independently.
 - Security: Enforce TLS for HTTP/RPC, authenticate dispatcher→service RPCs, and restrict DB access using managed credentials and network policies.
 - Observability: Centralized logs and health checks per node; use metrics & alerts for service-level issues.
+
+## 6. Implementation Plan & Next Steps
+
+Team,
+
+The architectural design phase is complete. Our UML diagrams (Section 5) serve as the definitive blueprints for implementation. We will now move into parallel development tracks based on the roles defined in Section 4.
+
+The immediate priority for **all teams** is to establish the core project scaffolding and database.
+
+### Phase 1: Foundation (Priority 1)
+
+**1. Set Up Repository Structure (PM & Leads):**
+
+- The project repository will be structured to mirror our **Deployment Diagram (5.4)**.
+- Create top-level directories: `/django_web_app`, `/dispatcher_service`, `/response_services` (with sub-folders `/police_service`, `/fire_service`, `/medical_service`), and a `/shared` directory.
+
+**2. Implement Database Schema (Database Engineer & Backend Team):**
+
+- This is the most critical first step.
+- **Source of Truth:** The **Core Data Entities Class Diagram (5.2)**.
+- **Action:** In the `django_web_app` project, create the `models.py` file.
+- **Models Required:** `User` (using Django's built-in User or a custom one), `Alert`, and `ResponseUnit`.
+- **Enums:** All enumerations (`AlertStatus`, `EmergencyType`, etc.) must be implemented as model `Choices` fields to ensure data integrity.
+- **Goal:** Run `makemigrations` and `migrate` to successfully build the tables in our **Neon (PostgreSQL)** database.
+
+**3. Define the RPC Contract (Backend Team):**
+
+- Create a file in the `/shared` directory (e.g., `rpc_interface.py`).
+- **Source of Truth:** The **System & Service Classes Diagram (5.2)** and **Sequence Diagram (5.3)**.
+- **Action:** Define the abstract "contract." At a minimum, this will be the function signature `receiveAlert_RPC(alertData)`. This "contract" will be imported by both the Dispatcher (client) and the Response Services (servers).
+
+### Phase 2: Parallel Development Tracks (By Role)
+
+Once Phase 1 is complete, teams will work in parallel.
+
+**For the Database Engineer (1):**
+
+- Lead the Phase 1 database implementation.
+- Configure and document the **Neon (PostgreSQL)** connection settings in the Django `settings.py` and for all backend services.
+- Begin R&D on the `findNearestUnit` SQL query. This is a high-priority, complex query that will likely require geospatial functions (e.g., PostGIS or equivalent calculations) to compare `Alert` and `ResponseUnit` coordinates.
+
+**For the Frontend Web Developers (2):**
+
+- **Focus:** The `django_web_app` component.
+- **Source of Truth:** **Use Case (5.1)** and **Sequence Diagram (5.3)**.
+- **Actions:**
+  1.  Implement basic User Authentication (Citizen registration, Admin login).
+  2.  Build the `AlertView` (Django view and template) for the "Submit Emergency Alert" form (Feature 2.2).
+  3.  Implement the client-side REST call (`sendAlert_REST`) that sends the `formData` to the Dispatcher's endpoint (Sequence Diagram step 2).
+  4.  Build the initial "Manage Response Units" and "View Alert Dashboard" pages for the Administrator role (stubs for now).
+
+**For the Backend Developers (4):**
+
+- **Focus:** `dispatcher_service` and `response_services` components.
+- **Source of Truth:** **Class Diagram (5.2)**, **Sequence Diagram (5.3)**, **Deployment Diagram (5.4)**.
+- **Actions:**
+  1.  **Dispatcher Service:**
+      - Implement the REST API endpoint that _receives_ the `sendAlert_REST` call from the `django_web_app`.
+      - Implement the RPC _client_ logic. This client will read the `emergencyType` and make the correct `receiveAlert_RPC` call to the appropriate service (Police, Fire, or Medical).
+  2.  **Response Services (Police, Fire, Medical):**
+      - Implement the three RPC _servers_ (one for each service).
+      - Each server must implement the `IResponseService` "contract" (from Phase 1).
+      - Implement the core business logic: `findNearestUnit` (using the DB Engineer's query) and `updateUnitStatus` (Sequence Diagram steps 4-7). This involves **critical database read/write operations**.
+
+### 6.1 Deliverables & Short Milestones
+
+- Scaffold projects and push initial branch structure within 48 hours.
+- Database models and migrations completed and verified on Neon within 5 working days.
+- Shared RPC interface and simple integration test (Dispatcher ↔ dummy ResponseService) within 7 working days.
+- Basic Alert submission flow end-to-end (UI → Dispatcher → mock RPC → DB ack → UI) within 10 working days.
+
+---
+
+## 7. Version Control & GitHub Protocol
+
+Team,
+
+To maintain a clean and functional codebase, we will follow a strict Git workflow. This is mandatory. **Under no circumstances should anyone push code directly to the `main` branch.** I will be solely responsible for reviewing and merging all code.
+
+### 7.1 Your Workflow (Mandatory)
+
+1.  **Always Pull First:** Before starting _any_ new work, get the latest code to avoid conflicts:
+
+    ```bash
+    git checkout main
+    git pull origin main
+    ```
+
+2.  **Create a New Feature Branch:** All work _must_ be done on a new branch. Name it clearly based on your assigned task.
+
+    - **Naming Convention:** `feature/<task-name>` (e.g., `feature/alert-form-view`) or `fix/<bug-name>` (e.g., `fix/user-login-bug`).
+    - **Command:** `git checkout -b feature/your-task-name`
+
+3.  **Work and Commit:** Do your work on this branch. Commit small, logical changes with clear messages (e.g., "feat: Add Alert model to models.py").
+
+4.  **Keep Your Branch Updated:** To prevent merge conflicts, frequently pull the latest changes from `main` _into_ your feature branch:
+
+    ```bash
+    git pull origin main
+    ```
+
+    (This will merge the latest `main` into your branch. Fix any conflicts that arise on your local branch).
+
+### 7.2 Code Review & Merging
+
+1.  **Push Your Branch:** When your feature is complete and tested, push your branch to GitHub:
+
+    ```bash
+    git push origin feature/your-task-name
+    ```
+
+2.  **Open a Pull Request (PR):**
+
+    - Go to the GitHub repository.
+    - Open a new **Pull Request (PR)**, comparing your `feature/your-task-name` branch to the `main` branch.
+    - **Title:** Give it a clear title (e.g., "Feature: Implement Alert Submission Form").
+    - **Description:** Briefly describe _what_ you did and _why_.
+    - **Assign Reviewer:** Assign **AllabouchAnas** as the reviewer.
+
+3.  **Merge (My Responsibility):**
+
+    - **Do not merge your own PR.**
+    - I will review the code, request changes if necessary, and then **I will perform the merge into `main`**.
+    - Once merged, you can safely delete your feature branch and `git pull origin main` to start your next task.
+
+> **Project Manager's Note:** This process protects our `main` branch from broken code and ensures all changes are reviewed. Pulling from `main` frequently (Step 4) is the best way to prevent large, difficult merge conflicts.
