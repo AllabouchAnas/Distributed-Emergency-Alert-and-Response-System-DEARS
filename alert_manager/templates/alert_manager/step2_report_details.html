@@ -1,0 +1,118 @@
+<!-- alert_manager/templates/alert_manager/step2_report_details.html -->
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DEARS - {{ type_label }}</title>
+    <!-- Chargement de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Configuration de base pour le Dark Mode */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000000;
+        }
+        .card {
+            background-color: #1a1a1a;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        }
+        /* Style général pour les inputs (kima f l-photo) */
+        input:not([type="submit"]), textarea {
+            background-color: #000000 !important; /* Fond noir */
+            color: #ffffff;
+            border: 1px solid #333;
+            padding: 10px 15px;
+            border-radius: 8px;
+            width: 100%;
+            transition: border-color 0.2s;
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #ff4500;
+        }
+        /* Cache les labels auto-générés par Django */
+        .hidden-label {
+            display: none !important;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- HEADER (Navigation) -->
+    <header class="bg-black text-white p-4 shadow-lg flex justify-between items-center border-b border-gray-800">
+        <div class="flex items-center space-x-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+            </svg>
+            <span class="text-xl font-bold">DEARS</span>
+        </div>
+        <div class="flex items-center space-x-4">
+            <a href="{% url 'select_type' %}" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors shadow-md">
+                Signaler Alerte
+            </a>
+            <a href="#" class="text-gray-300 hover:text-white transition-colors text-sm font-semibold">
+                Admin Dashboard
+            </a>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT (Card) -->
+    <main class="flex-grow flex items-center justify-center p-4">
+        <div class="card w-full max-w-4xl p-8 text-white rounded-xl">
+            <h1 class="text-3xl font-bold mb-2">Signaler une Urgence</h1>
+            <p class="text-gray-400 mb-8">Vous signalez une alerte de type : <span class="font-bold text-red-400">{{ type_label }}</span></p>
+
+            <form method="post" class="space-y-6">
+                <!-- Hada wajib f Django l-l-Sécurité -->
+                {% csrf_token %} 
+
+                <!-- L-Champs Dial Full Name w Phone (F Ssaf Wahd) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="{{ form.full_name.id_for_label }}" class="block text-sm font-medium mb-2">{{ form.full_name.label }}</label>
+                        {{ form.full_name }}
+                        {% if form.full_name.errors %}<p class="text-red-500 text-xs mt-1">{{ form.full_name.errors.as_text }}</p>{% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.phone_number.id_for_label }}" class="block text-sm font-medium mb-2">{{ form.phone_number.label }}</label>
+                        {{ form.phone_number }}
+                        {% if form.phone_number.errors %}<p class="text-red-500 text-xs mt-1">{{ form.phone_number.errors.as_text }}</p>{% endif %}
+                    </div>
+                </div>
+
+                <!-- L-Champs Dial Latitude w Longitude (F Ssaf Wahd) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="{{ form.latitude.id_for_label }}" class="block text-sm font-medium mb-2">{{ form.latitude.label }}</label>
+                        {{ form.latitude }}
+                        {% if form.latitude.errors %}<p class="text-red-500 text-xs mt-1">{{ form.latitude.errors.as_text }}</p>{% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.longitude.id_for_label }}" class="block text-sm font-medium mb-2">{{ form.longitude.label }}</label>
+                        {{ form.longitude }}
+                        {% if form.longitude.errors %}<p class="text-red-500 text-xs mt-1">{{ form.longitude.errors.as_text }}</p>{% endif %}
+                    </div>
+                </div>
+
+                <!-- L-Champs Dial Description (Ssaft Kamel) -->
+                <div>
+                    <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium mb-2">{{ form.description.label }}</label>
+                    {{ form.description }}
+                    {% if form.description.errors %}<p class="text-red-500 text-xs mt-1">{{ form.description.errors.as_text }}</p>{% endif %}
+                </div>
+
+                <!-- Button Dial Submit -->
+                <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-4 rounded-lg transition-colors mt-6 shadow-xl">
+                    Soumettre l'Alerte d'Urgence
+                </button>
+            </form>
+            
+            <p class="text-xs text-gray-500 text-center mt-4">Vos informations seront transmises de manière sécurisée aux services d'urgence.</p>
+
+        </div>
+    </main>
+</body>
+</html>
