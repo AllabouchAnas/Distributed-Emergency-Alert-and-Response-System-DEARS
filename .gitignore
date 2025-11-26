@@ -1,1 +1,28 @@
+# ============================
+# PYTHON
+# ============================
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+
 .history
+
+
+# Virtual environments
+env/
+venv/
+ENV/
+.venv/
+.env/
+*.env
+*.env.local
+*.env.dev
+*.env.prod
+
+# ============================
+# EDITOR / IDE
+# ============================
+# VS Code
+.vscode/
