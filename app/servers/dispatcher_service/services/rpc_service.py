@@ -8,16 +8,7 @@ from ..utils.logger import logger
 
 
 def forward_alert_to_response_service(alert_data: AlertCreate, alert_id: int) -> tuple[bool, str]:
-    """
-    Forwards the alert to the appropriate Response Service using RPyC.
-    
-    Args:
-        alert_data: The alert data containing emergency type and details
-        alert_id: The ID of the created alert
-        
-    Returns:
-        tuple: (success: bool, message: str)
-    """
+
     service_info = RPC_SERVICES.get(alert_data.emergency_type.value)
     if not service_info:
         logger.error(f"No RPC service configured for type: {alert_data.emergency_type}")
