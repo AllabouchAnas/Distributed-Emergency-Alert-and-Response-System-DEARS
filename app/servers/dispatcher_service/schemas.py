@@ -10,9 +10,6 @@ class AlertCreate(BaseModel):
     emergency_type: EmergencyType
 
 class AlertResponse(BaseModel):
-    alert_id: int
+    alert_id: str
     status: str
     timestamp: datetime
-    
-    class Config:
-        from_attributes = True
