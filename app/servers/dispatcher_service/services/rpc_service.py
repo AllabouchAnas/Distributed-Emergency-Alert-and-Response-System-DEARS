@@ -1,13 +1,10 @@
-"""
-RPC Service for forwarding alerts to response services.
-"""
 import rpyc
 from ..schemas import AlertCreate
 from ..config import RPC_SERVICES
 from ..utils.logger import logger
 
 
-def forward_alert_to_response_service(alert_data: AlertCreate, alert_id: int) -> tuple[bool, str]:
+def forward_alert_to_response_service(alert_data: AlertCreate, alert_id: str) -> tuple[bool, str]:
 
     service_info = RPC_SERVICES.get(alert_data.emergency_type.value)
     if not service_info:
