@@ -34,7 +34,7 @@ def submit_alert(alert: AlertCreate, db: Session = Depends(get_db)):
     try:
         db_alert = crud.create_alert(db, alert)
     except ValueError as e:
-        # Validation errors (user not found, invalid data, etc.)
+        # Validation errors (user not found, invalid data, etc.)SSS
         logger.error(f"Validation error: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
