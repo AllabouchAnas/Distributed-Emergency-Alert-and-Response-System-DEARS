@@ -1,5 +1,4 @@
 import rpyc
-import math
 from sqlalchemy import select
 from .db.db import SessionLocal
 from .db.models import ResponseUnit, Alert
@@ -20,15 +19,19 @@ class MedicalService(rpyc.Service):
         
         db = SessionLocal()
         try:
-            # 1. Parse location
-            try:
-                lat_str, lon_str = location.split(',')
-                alert_lat = float(lat_str.strip())
-                alert_lon = float(lon_str.strip())
-            except ValueError:
-                logger.error(f"Invalid location format: {location}")
-                return "Error: Invalid location format"
-
+            # 1. Create alert record in database
+            new_alert = Alert(
+                user_id=1,  # Default user_id since dispatcher doesn't send it
+                description=description,
+                location=location,
+                emergency_type=emergency_type,
+                status="PENDING"
+            )
+            db.add(new_alert)
+            db.flush()  # Get the auto-generated alert_id
+            
+            logger.info(f"Created alert in database with ID: {new_alert.alert_id}")
+            
             # 2. Find available MEDICAL units
             stmt = select(ResponseUnit).where(
                 ResponseUnit.unit_type == "MEDICAL",
@@ -36,47 +39,24 @@ class MedicalService(rpyc.Service):
             )
             available_units = db.execute(stmt).scalars().all()
             
-            logger.info(f"DEBUG: Found {len(available_units)} available MEDICAL units.")
+            logger.info(f"Found {len(available_units)} available MEDICAL units.")
 
             if not available_units:
                 logger.warning("No available MEDICAL units found.")
+                db.commit()
                 return "No available units"
 
-            # 3. Find nearest unit
-            nearest_unit = None
-            min_distance = float('inf')
-
-            for unit in available_units:
-                try:
-                    u_lat, u_lon = unit.current_location.split(',')
-                    u_lat = float(u_lat.strip())
-                    u_lon = float(u_lon.strip())
-                    
-                    # Simple Euclidean distance
-                    dist = math.sqrt((alert_lat - u_lat)**2 + (alert_lon - u_lon)**2)
-                    
-                    if dist < min_distance:
-                        min_distance = dist
-                        nearest_unit = unit
-                except ValueError:
-                    continue # Skip units with invalid location
-
-            if nearest_unit:
-                # 4. Assign unit
-                nearest_unit.status = "EN_ROUTE"
-                
-                # Update Alert
-                alert = db.get(Alert, alert_id)
-                if alert:
-                    alert.assigned_unit = nearest_unit.unit_id
-                    alert.status = "ASSIGNED"
-                
-                db.commit()
-                logger.info(f"Assigned Unit {nearest_unit.unit_name} (ID: {nearest_unit.unit_id}) to Alert {alert_id}")
-                return f"Unit {nearest_unit.unit_name} dispatched"
-            else:
-                logger.warning("No units with valid location found.")
-                return "No reachable units"
+            # 3. Assign first available unit
+            assigned_unit = available_units[0]
+            assigned_unit.status = "EN_ROUTE"
+            
+            # Update alert with assignment
+            new_alert.assigned_unit = assigned_unit.unit_id
+            new_alert.status = "ASSIGNED"
+            
+            db.commit()
+            logger.info(f"Assigned Unit {assigned_unit.unit_name} (ID: {assigned_unit.unit_id}) to Alert {new_alert.alert_id}")
+            return f"Unit {assigned_unit.unit_name} dispatched"
 
         except Exception as e:
             logger.error(f"Error processing alert: {e}")
