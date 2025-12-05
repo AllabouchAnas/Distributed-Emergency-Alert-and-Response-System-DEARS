@@ -6,7 +6,7 @@ from .enums.emergency_type import EmergencyType
 class AlertCreate(BaseModel):
     user_id: int
     description: str
-    location: str
+    location: str 
     emergency_type: EmergencyType
     
     @field_validator('emergency_type', mode='before')
