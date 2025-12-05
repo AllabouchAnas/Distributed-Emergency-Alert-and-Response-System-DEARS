@@ -9,12 +9,15 @@ class AlertCreate(BaseModel):
     location: str 
     emergency_type: EmergencyType
     
-    
+    @field_validator('emergency_type', mode='before')
+    @classmethod
+    def convert_emergency_type_to_uppercase(cls, v):
+        """Convert emergency_type to uppercase if it's a string."""
+        if isinstance(v, str):
+            return v.upper()
+        return v
 
 class AlertResponse(BaseModel):
-    alert_id: str  # UUID string
+    alert_id: str
     status: str
     timestamp: datetime
-    
-    class Config:
-        from_attributes = True

@@ -1,12 +1,11 @@
 # Dispatcher Service
 
-The **Dispatcher Service** is the central hub of the DEARS system. It receives emergency alerts from the web app and routes them to the correct response service (Police, Fire, or Medical).
+The **Dispatcher Service** is the central hub of the DEARS system. It receives emergency alerts from the web app and routes them to the correct response service (Police, Fire, or Medical) via RPC. This service is **stateless** and does not persist alerts to a database.
 
 ## 🚀 Quick Start (Local Setup)
 
 ### 1. Prerequisites
 - Python 3.8+
-- PostgreSQL (running locally)
 
 ### 2. Installation
 ```bash
@@ -24,9 +23,6 @@ pip install -r requirements.txt
 ### 3. Configuration
 Create a `.env` file (copy from `.env.example`):
 ```bash
-# Database
-DATABASE_URL=postgresql://user:password@localhost:5432/dears_db
-
 # Server Settings
 DISPATCHER_HOST=0.0.0.0
 DISPATCHER_PORT=8000
@@ -38,6 +34,10 @@ RPC_FIRE_HOST=localhost
 RPC_FIRE_PORT=9002
 RPC_MEDICAL_HOST=localhost
 RPC_MEDICAL_PORT=9003
+
+# RPC Settings
+RPC_RETRIES=2
+RPC_TIMEOUT=5
 ```
 
 ### 4. Run the Service
@@ -64,6 +64,17 @@ The **Django Web App** sends alerts here via HTTP POST.
     "emergency_type": "FIRE"
   }
   ```
+  
+- **Response:**
+  ```json
+  {
+    "alert_id": "550e8400-e29b-41d4-a716-446655440000",
+    "status": "forwarded",
+    "timestamp": "2025-12-02T21:15:30.123456"
+  }
+  ```
+
+**Note:** The `emergency_type` field is case-insensitive. You can send `"fire"`, `"FIRE"`, or `"Fire"` - all will be accepted and converted to uppercase.
 
 ### 2. Forwarding Alerts (Output)
 The Dispatcher Service uses **RPC (Remote Procedure Calls)** to talk to the response services.
@@ -74,8 +85,8 @@ The Dispatcher Service uses **RPC (Remote Procedure Calls)** to talk to the resp
 
 When an alert comes in, the Dispatcher automatically calls the `receive_alert` function on the correct service.
 
-### 3. Database
-All alerts are saved to the **PostgreSQL** database before being forwarded.
+### 3. Alert IDs
+Alert IDs are generated as **UUIDs** (Universally Unique Identifiers) in string format. This ensures uniqueness without requiring a database.
 
 ---
 
