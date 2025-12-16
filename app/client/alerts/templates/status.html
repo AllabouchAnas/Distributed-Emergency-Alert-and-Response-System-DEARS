@@ -3,66 +3,244 @@
 {% block title %}Status - DEARS{% endblock %}
 
 {% block content %}
-<section class="status-container" style="padding: 3rem 0;">
-    <div class="status-card">
-        <h1>Emergency Alert Status</h1>
-
-        <div style="margin: 2rem 0;">
-            <p class="text-muted">Report ID</p>
-            <p class="report-id">{{ report.id }}</p>
-        </div>
-
-        <div style="margin: 2rem 0;">
-            <p class="text-muted">Emergency Type</p>
-            <h2>{{ report.get_emergency_type_display }}</h2>
-        </div>
-
-        <div style="margin: 2rem 0;">
-            <p class="text-muted">Current Status</p>
-            <span class="status-badge {{ report.get_status_badge_class }}">
-                {{ report.get_status_display }}
-            </span>
-        </div>
-
-        <div style="margin: 2rem 0;">
-            <p class="text-muted">Last Updated</p>
-            <p><strong>{{ report.updated_at|date:"F d, Y - H:i" }}</strong></p>
-        </div>
-
-        <div style="margin: 2rem 0;">
-            <p class="text-muted">Reported At</p>
-            <p>{{ report.created_at|date:"F d, Y - H:i" }}</p>
-        </div>
-
-        {% if report.status == 'NEW' %}
-        <div class="alert alert-info">
-            Your emergency alert has been received and is being processed.
-        </div>
-        {% elif report.status == 'IN_PROGRESS' %}
-        <div class="alert alert-warning">
-            Emergency services have been dispatched and are en route.
-        </div>
-        {% elif report.status == 'RESOLVED' %}
-        <div class="alert alert-success">
-            This emergency has been resolved.
-        </div>
-        {% endif %}
-    </div>
-
-    <!-- Search for Another Report -->
-    <div class="search-section">
-        <h3>Check Another Report</h3>
-        <p class="text-muted">Enter a different report ID to check its status</p>
-        <form method="post" class="card" style="max-width: 500px; margin: 2rem auto;">
-            {% csrf_token %}
-            <div class="form-group">
-                {{ search_form.report_id }}
-                {% if search_form.report_id.errors %}
-                <div class="alert alert-error mt-1">{{ search_form.report_id.errors }}</div>
-                {% endif %}
+<section style="padding: 3rem 0;">
+    <div class="container-sm">
+        <!-- Status Card -->
+        <div class="status-page-card">
+            <div class="status-header">
+                <div class="status-icon-large">
+                    {% if report.emergency_type == 'POLICE' %}🚓
+                    {% elif report.emergency_type == 'FIRE' %}🚒
+                    {% elif report.emergency_type == 'MEDICAL' %}🚑
+                    {% endif %}
+                </div>
+                <h1 style="margin-bottom: 0.5rem;">Emergency Alert Status</h1>
+                <p class="text-muted">Real-time tracking for your emergency report</p>
             </div>
-            <button type="submit" class="btn btn-primary btn-block">Check Status</button>
-        </form>
+
+            <!-- Status Info Grid -->
+            <div class="status-info-grid">
+                <div class="status-info-item">
+                    <label class="status-label">Report ID</label>
+                    <div class="status-value status-id">{{ report.id }}</div>
+                </div>
+
+                <div class="status-info-item">
+                    <label class="status-label">Emergency Type</label>
+                    <div class="status-value emergency-type-display">
+                        {{ report.get_emergency_type_display }}
+                    </div>
+                </div>
+
+                <div class="status-info-item">
+                    <label class="status-label">Current Status</label>
+                    <span class="status-badge {{ report.get_status_badge_class }}">
+                        {{ report.get_status_display }}
+                    </span>
+                </div>
+
+                <div class="status-info-item">
+                    <label class="status-label">Reported At</label>
+                    <div class="status-value">{{ report.created_at|date:"F d, Y - H:i" }}</div>
+                </div>
+
+                <div class="status-info-item">
+                    <label class="status-label">Last Updated</label>
+                    <div class="status-value">{{ report.updated_at|date:"F d, Y - H:i" }}</div>
+                </div>
+
+                <div class="status-info-item">
+                    <label class="status-label">Location</label>
+                    <div class="status-value">
+                        {% if report.latitude and report.longitude %}
+                        {{ report.latitude|floatformat:6 }}, {{ report.longitude|floatformat:6 }}
+                        {% else %}
+                        Not provided
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status Message -->
+            {% if report.status == 'NEW' %}
+            <div class="status-message status-message-warning">
+                <div class="status-message-icon">⏳</div>
+                <div>
+                    <div class="status-message-title">Alert Received</div>
+                    <div class="status-message-text">Your emergency alert has been received and is being processed.
+                        Emergency services will be dispatched shortly.</div>
+                </div>
+            </div>
+            {% elif report.status == 'IN_PROGRESS' %}
+            <div class="status-message status-message-info">
+                <div class="status-message-icon">🚨</div>
+                <div>
+                    <div class="status-message-title">Help is On the Way</div>
+                    <div class="status-message-text">Emergency services have been dispatched and are en route to your
+                        location. Please stay safe.</div>
+                </div>
+            </div>
+            {% elif report.status == 'RESOLVED' %}
+            <div class="status-message status-message-success">
+                <div class="status-message-icon">✅</div>
+                <div>
+                    <div class="status-message-title">Emergency Resolved</div>
+                    <div class="status-message-text">This emergency has been successfully resolved. Thank you for using
+                        DEARS.</div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Check Another Report -->
+        <div class="check-another-section">
+            <h3 class="text-center">Check Another Report</h3>
+            <p class="text-center text-muted" style="margin-bottom: 2rem;">Enter a different report ID to check its
+                status</p>
+
+            <form method="post" class="check-status-form">
+                {% csrf_token %}
+                <div class="form-group">
+                    <input type="text" name="report_id" class="form-input"
+                        placeholder="Enter report ID (e.g., 5d2dc4df-5278-49a4-8745-84c573cb57b6)"
+                        value="{{ search_form.report_id.value|default:'' }}">
+                    {% if search_form.report_id.errors %}
+                    <div class="form-error">{{ search_form.report_id.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">🔍 Check Status</button>
+            </form>
+        </div>
     </div>
 </section>
+
+<style>
+    .status-page-card {
+        background: var(--color-bg-secondary);
+        border-radius: var(--radius-xl);
+        padding: var(--spacing-2xl);
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--color-accent-subtle);
+        margin-bottom: var(--spacing-xl);
+    }
+
+    .status-header {
+        text-align: center;
+        margin-bottom: var(--spacing-xl);
+        padding-bottom: var(--spacing-xl);
+        border-bottom: 1px solid var(--color-accent-subtle);
+    }
+
+    .status-icon-large {
+        font-size: 4rem;
+        margin-bottom: var(--spacing-md);
+    }
+
+    .status-info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: var(--spacing-lg);
+        margin-bottom: var(--spacing-xl);
+    }
+
+    .status-info-item {
+        padding: var(--spacing-md);
+        background: var(--color-bg-tertiary);
+        border-radius: var(--radius-md);
+        border: 1px solid var(--color-accent-subtle);
+    }
+
+    .status-label {
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--color-text-muted);
+        margin-bottom: var(--spacing-xs);
+    }
+
+    .status-value {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--color-text-primary);
+        word-break: break-all;
+    }
+
+    .status-id {
+        font-family: 'Courier New', monospace;
+        font-size: 0.875rem;
+    }
+
+    .emergency-type-display {
+        font-size: 1.25rem;
+        font-weight: 700;
+    }
+
+    .status-message {
+        display: flex;
+        gap: var(--spacing-md);
+        padding: var(--spacing-lg);
+        border-radius: var(--radius-lg);
+        margin-top: var(--spacing-xl);
+    }
+
+    .status-message-icon {
+        font-size: 2rem;
+        flex-shrink: 0;
+    }
+
+    .status-message-title {
+        font-size: 1.125rem;
+        font-weight: 700;
+        margin-bottom: var(--spacing-xs);
+        color: var(--color-text-primary);
+    }
+
+    .status-message-text {
+        color: var(--color-text-secondary);
+        line-height: 1.6;
+    }
+
+    .status-message-warning {
+        background: rgba(234, 88, 12, 0.1);
+        border: 1px solid rgba(234, 88, 12, 0.3);
+    }
+
+    .status-message-info {
+        background: rgba(37, 99, 235, 0.1);
+        border: 1px solid rgba(37, 99, 235, 0.3);
+    }
+
+    .status-message-success {
+        background: rgba(5, 150, 105, 0.1);
+        border: 1px solid rgba(5, 150, 105, 0.3);
+    }
+
+    .check-another-section {
+        margin-top: var(--spacing-2xl);
+        padding-top: var(--spacing-2xl);
+    }
+
+    .check-status-form {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .form-error {
+        color: var(--color-emergency-critical);
+        font-size: 0.875rem;
+        margin-top: var(--spacing-xs);
+    }
+
+    @media (max-width: 768px) {
+        .status-page-card {
+            padding: var(--spacing-lg);
+        }
+
+        .status-info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
 {% endblock %}
