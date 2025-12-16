@@ -1,6 +1,7 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +10,7 @@
     <script src="{% static 'js/htmx.min.js' %}" defer></script>
     {% block extra_head %}{% endblock %}
 </head>
+
 <body>
     <!-- Header -->
     <header class="header">
@@ -22,10 +24,18 @@
                     <ul class="nav-links">
                         <li><a href="{% url 'home' %}">Home</a></li>
                         {% if user.is_authenticated %}
-                            <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
-                            <li><a href="{% url 'admin:index' %}">Admin</a></li>
+                        <li><a href="{% url 'declare' %}">Report Emergency</a></li>
+                        {% if user.profile.is_admin %}
+                        <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                        {% endif %}
+                        <li style="color: #6b7280; padding: 0.5rem 1rem;">
+                            👤 {{ user.get_full_name|default:user.username }}
+                        </li>
+                        <li><a href="{% url 'logout' %}">Logout</a></li>
                         {% else %}
-                            <li><a href="{% url 'login' %}">Login</a></li>
+                        <li><a href="{% url 'login' %}">Login</a></li>
+                        <li><a href="{% url 'register' %}" class="btn btn-primary" style="margin-left: 0.5rem;">Sign
+                                Up</a></li>
                         {% endif %}
                     </ul>
                 </nav>
@@ -59,4 +69,5 @@
 
     {% block extra_scripts %}{% endblock %}
 </body>
+
 </html>

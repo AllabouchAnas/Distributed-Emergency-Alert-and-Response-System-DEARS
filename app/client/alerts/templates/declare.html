@@ -50,23 +50,23 @@
                     </div>
                 </div>
 
-                <!-- Name -->
-                <div class="form-group">
-                    <label class="form-label" for="{{ form.name.id_for_label }}">{{ form.name.label }} *</label>
-                    {{ form.name }}
-                    {% if form.name.errors %}
-                    <div class="alert alert-error mt-1">{{ form.name.errors }}</div>
-                    {% endif %}
-                </div>
-
-                <!-- Contact Info -->
-                <div class="form-group">
-                    <label class="form-label" for="{{ form.contact_info.id_for_label }}">{{ form.contact_info.label }}
-                        *</label>
-                    {{ form.contact_info }}
-                    {% if form.contact_info.errors %}
-                    <div class="alert alert-error mt-1">{{ form.contact_info.errors }}</div>
-                    {% endif %}
+                <!-- User Information (Read-only) -->
+                <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 1.5rem;">
+                    <h4 style="margin: 0 0 1rem 0; font-size: 1rem; color: #6b7280;">Your Information</h4>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div>
+                            <strong style="display: block; color: #374151; margin-bottom: 0.25rem;">Name:</strong>
+                            <span>{{ user.get_full_name }}</span>
+                        </div>
+                        <div>
+                            <strong style="display: block; color: #374151; margin-bottom: 0.25rem;">Phone:</strong>
+                            <span>{{ user_profile.phone_number }}</span>
+                        </div>
+                    </div>
+                    <div style="margin-top: 0.75rem;">
+                        <strong style="display: block; color: #374151; margin-bottom: 0.25rem;">Address:</strong>
+                        <span>{{ user_profile.address }}, {{ user_profile.city }}</span>
+                    </div>
                 </div>
 
                 <!-- Emergency Description -->

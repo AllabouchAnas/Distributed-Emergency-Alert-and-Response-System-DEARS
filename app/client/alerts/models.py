@@ -1,6 +1,87 @@
 import uuid
 from django.db import models
 from django.urls import reverse
+from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+
+class UserProfile(models.Model):
+    """Extended user profile with role and personal information."""
+    
+    # User role choices
+    CITIZEN = 'CITIZEN'
+    ADMIN = 'ADMIN'
+    
+    ROLE_CHOICES = [
+        (CITIZEN, 'Citizen'),
+        (ADMIN, 'Administrator'),
+    ]
+    
+    # Link to Django User model
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='profile'
+    )
+    
+    # Role
+    role = models.CharField(
+        max_length=20,
+        choices=ROLE_CHOICES,
+        default=CITIZEN,
+        help_text='User role in the system'
+    )
+    
+    # Personal information
+    phone_number = models.CharField(
+        max_length=20,
+        help_text='Contact phone number'
+    )
+    
+    address = models.CharField(
+        max_length=500,
+        help_text='Home address'
+    )
+    
+    city = models.CharField(
+        max_length=100,
+        help_text='City'
+    )
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = 'User Profile'
+        verbose_name_plural = 'User Profiles'
+    
+    def __str__(self):
+        return f"{self.user.get_full_name()} ({self.get_role_display()})"
+    
+    def is_admin(self):
+        """Check if user has admin role."""
+        return self.role == self.ADMIN
+    
+    def is_citizen(self):
+        """Check if user has citizen role."""
+        return self.role == self.CITIZEN
+
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    """Create a UserProfile when a new User is created."""
+    if created:
+        UserProfile.objects.create(user=instance)
+
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    """Save the UserProfile when the User is saved."""
+    if hasattr(instance, 'profile'):
+        instance.profile.save()
+
 
 
 class EmergencyReport(models.Model):
@@ -38,16 +119,14 @@ class EmergencyReport(models.Model):
         help_text='Unique identifier for this emergency report'
     )
     
-    # Reporter information
-    name = models.CharField(
-        max_length=200,
-        help_text='Name of the person reporting the emergency'
+    # Reporter (linked to User)
+    reported_by = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='emergency_reports',
+        help_text='User who reported the emergency'
     )
-    
-    contact_info = models.CharField(
-        max_length=200,
-        help_text='Email or phone number for contact'
-    )
+
     
     # Emergency details
     emergency_type = models.CharField(

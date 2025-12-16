@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block title %}Register - DEARS{% endblock %}
+
+{% block content %}
+<section style="padding: 3rem 0; min-height: 80vh; display: flex; align-items: center;">
+    <div class="container" style="max-width: 600px; margin: 0 auto;">
+        <div style="background: white; padding: 3rem; border-radius: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <h1 style="text-align: center; margin-bottom: 0.5rem;">Create Account</h1>
+            <p class="text-muted" style="text-align: center; margin-bottom: 2rem;">Join DEARS to report emergencies</p>
+
+            {% if messages %}
+            <div style="margin-bottom: 1.5rem;">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}"
+                    style="padding: 1rem; border-radius: 0.5rem; margin-bottom: 0.5rem; 
+                     background: {% if message.tags == 'error' %}#fee{% elif message.tags == 'success' %}#efe{% else %}#fef{% endif %};">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label class="form-label">{{ form.username.label }}</label>
+                    {{ form.username }}
+                    {% if form.username.errors %}
+                    <div class="form-error">{{ form.username.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                    <div>
+                        <label class="form-label">{{ form.first_name.label }}</label>
+                        {{ form.first_name }}
+                        {% if form.first_name.errors %}
+                        <div class="form-error">{{ form.first_name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label class="form-label">{{ form.last_name.label }}</label>
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}
+                        <div class="form-error">{{ form.last_name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label class="form-label">{{ form.email.label }}</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                    <div class="form-error">{{ form.email.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label class="form-label">{{ form.phone_number.label }}</label>
+                    {{ form.phone_number }}
+                    {% if form.phone_number.errors %}
+                    <div class="form-error">{{ form.phone_number.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label class="form-label">{{ form.address.label }}</label>
+                    {{ form.address }}
+                    {% if form.address.errors %}
+                    <div class="form-error">{{ form.address.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label class="form-label">{{ form.city.label }}</label>
+                    {{ form.city }}
+                    {% if form.city.errors %}
+                    <div class="form-error">{{ form.city.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label class="form-label">{{ form.password1.label }}</label>
+                    {{ form.password1 }}
+                    {% if form.password1.errors %}
+                    <div class="form-error">{{ form.password1.errors.0 }}</div>
+                    {% endif %}
+                    <small class="text-muted" style="display: block; margin-top: 0.25rem;">
+                        Your password must contain at least 8 characters.
+                    </small>
+                </div>
+
+                <div style="margin-bottom: 2rem;">
+                    <label class="form-label">{{ form.password2.label }}</label>
+                    {{ form.password2 }}
+                    {% if form.password2.errors %}
+                    <div class="form-error">{{ form.password2.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.875rem;">
+                    Create Account
+                </button>
+            </form>
+
+            <div style="text-align: center; margin-top: 1.5rem;">
+                <p class="text-muted">
+                    Already have an account?
+                    <a href="{% url 'login' %}" style="color: #dc2626; text-decoration: none; font-weight: 600;">
+                        Sign In
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
