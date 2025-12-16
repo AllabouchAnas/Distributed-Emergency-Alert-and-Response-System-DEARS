@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Status - DEARS{% endblock %}
+
+{% block content %}
+<section class="status-container" style="padding: 3rem 0;">
+    <div class="status-card">
+        <h1>Emergency Alert Status</h1>
+
+        <div style="margin: 2rem 0;">
+            <p class="text-muted">Report ID</p>
+            <p class="report-id">{{ report.id }}</p>
+        </div>
+
+        <div style="margin: 2rem 0;">
+            <p class="text-muted">Emergency Type</p>
+            <h2>{{ report.get_emergency_type_display }}</h2>
+        </div>
+
+        <div style="margin: 2rem 0;">
+            <p class="text-muted">Current Status</p>
+            <span class="status-badge {{ report.get_status_badge_class }}">
+                {{ report.get_status_display }}
+            </span>
+        </div>
+
+        <div style="margin: 2rem 0;">
+            <p class="text-muted">Last Updated</p>
+            <p><strong>{{ report.updated_at|date:"F d, Y - H:i" }}</strong></p>
+        </div>
+
+        <div style="margin: 2rem 0;">
+            <p class="text-muted">Reported At</p>
+            <p>{{ report.created_at|date:"F d, Y - H:i" }}</p>
+        </div>
+
+        {% if report.status == 'NEW' %}
+        <div class="alert alert-info">
+            Your emergency alert has been received and is being processed.
+        </div>
+        {% elif report.status == 'IN_PROGRESS' %}
+        <div class="alert alert-warning">
+            Emergency services have been dispatched and are en route.
+        </div>
+        {% elif report.status == 'RESOLVED' %}
+        <div class="alert alert-success">
+            This emergency has been resolved.
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Search for Another Report -->
+    <div class="search-section">
+        <h3>Check Another Report</h3>
+        <p class="text-muted">Enter a different report ID to check its status</p>
+        <form method="post" class="card" style="max-width: 500px; margin: 2rem auto;">
+            {% csrf_token %}
+            <div class="form-group">
+                {{ search_form.report_id }}
+                {% if search_form.report_id.errors %}
+                <div class="alert alert-error mt-1">{{ search_form.report_id.errors }}</div>
+                {% endif %}
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Check Status</button>
+        </form>
+    </div>
+</section>
+{% endblock %}

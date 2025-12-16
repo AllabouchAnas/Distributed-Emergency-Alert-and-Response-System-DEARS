@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - DEARS{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
+    <div class="container">
+        <h1>DEARS</h1>
+        <p class="subtitle">Distributed Emergency Alert & Response System</p>
+        <p class="text-muted">A cutting-edge distributed system that connects citizens with emergency<br>services
+            through intelligent routing and real-time coordination.</p>
+
+        <div class="hero-actions">
+            <a href="{% url 'declare' %}" class="btn btn-primary btn-large">
+                ⚠ Submit Emergency Alert
+            </a>
+            {% if user.is_authenticated %}
+            <a href="{% url 'dashboard' %}" class="btn btn-secondary btn-large">
+                📊 Admin Dashboard
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- System Features -->
+<section style="padding: 3rem 0;">
+    <div class="container">
+        <h2 class="text-center">System Features</h2>
+        <p class="text-center text-muted">Built with resilience, scalability, and speed in mind</p>
+
+        <div class="card-grid">
+            <div class="card">
+                <div class="card-icon">⚡</div>
+                <h3>Instant Response</h3>
+                <p>Automated routing to the nearest available emergency unit within seconds</p>
+            </div>
+
+            <div class="card">
+                <div class="card-icon">📡</div>
+                <h3>Distributed System</h3>
+                <p>Resilient architecture ensures system availability even during high load</p>
+            </div>
+
+            <div class="card">
+                <div class="card-icon">🛡️</div>
+                <h3>Multi-Service</h3>
+                <p>Integrated Police, Fire, and Medical emergency response coordination</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works -->
+<section style="padding: 3rem 0; background: #f8f9fa;">
+    <div class="container">
+        <h2 class="text-center">How It Works</h2>
+        <div class="steps">
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h3>Citizen Submits Alert</h3>
+                    <p>Users fill out a simple form specifying emergency type, description, and location coordinates.
+                    </p>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h3>Intelligent Routing</h3>
+                    <p>The Dispatcher analyzes the alert and routes it to the appropriate service (Police, Fire, or
+                        Medical) via RPC.</p>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h3>Unit Dispatch</h3>
+                    <p>The service identifies the nearest available response unit, updates its status, and dispatches it
+                        to the location.</p>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <h3>Confirmation & Tracking</h3>
+                    <p>The citizen receives confirmation, and administrators can track the alert status in real-time.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Check Status Section -->
+<section style="padding: 3rem 0;">
+    <div class="container-sm text-center">
+        <h2>Check Emergency Alert Status</h2>
+        <p class="text-muted mb-3">Enter your report ID to check the current status of your emergency alert</p>
+        <form method="get" action="{% url 'home' %}" style="max-width: 500px; margin: 0 auto;">
+            <div class="form-group">
+                <input type="text" name="search_id" class="form-input" placeholder="Enter Report ID"
+                    style="text-align: center;">
+            </div>
+            <button type="submit" class="btn btn-primary">Check Status</button>
+        </form>
+    </div>
+</section>
+{% endblock %}

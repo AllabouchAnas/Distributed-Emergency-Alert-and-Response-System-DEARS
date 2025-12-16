@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - DEARS{% endblock %}
+
+{% block content %}
+<section style="padding: 3rem 0;">
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <div>
+                <h1>Admin Dashboard</h1>
+                <p class="text-muted">Monitor alerts and manage response units</p>
+            </div>
+            <div>
+                <a href="{% url 'declare' %}" class="btn btn-primary">+ Add Response Unit</a>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">Active Alerts</span>
+                    <span class="stat-icon">📊</span>
+                </div>
+                <div class="stat-value">{{ stats.active }}</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">In Progress</span>
+                    <span class="stat-icon">🚨</span>
+                </div>
+                <div class="stat-value">{{ stats.in_progress }}</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">Resolved</span>
+                    <span class="stat-icon">✅</span>
+                </div>
+                <div class="stat-value">{{ stats.resolved }}</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">Total Alerts</span>
+                    <span class="stat-icon">📈</span>
+                </div>
+                <div class="stat-value">{{ stats.total }}</div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div
+            style="background: white; padding: 1.5rem; border-radius: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 1rem;">
+            <div class="filters">
+                <a href="?status=all" class="filter-btn {% if current_filter == 'all' %}active{% endif %}">All
+                    Alerts</a>
+                <a href="?status=NEW" class="filter-btn {% if current_filter == 'NEW' %}active{% endif %}">New</a>
+                <a href="?status=IN_PROGRESS"
+                    class="filter-btn {% if current_filter == 'IN_PROGRESS' %}active{% endif %}">In Progress</a>
+                <a href="?status=RESOLVED"
+                    class="filter-btn {% if current_filter == 'RESOLVED' %}active{% endif %}">Resolved</a>
+            </div>
+        </div>
+
+        <!-- Emergency Alerts Table -->
+        <div class="table-container">
+            <h3 style="padding: 1.5rem; margin: 0; border-bottom: 1px solid #e9ecef;">Recent Emergency Alerts</h3>
+            <table class="table" id="reports-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                        <th>Location</th>
+                        <th>Status</th>
+                        <th>Reported</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for report in reports %}
+                    {% include 'partials/report_row.html' %}
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted" style="padding: 2rem;">
+                            No emergency reports found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}
