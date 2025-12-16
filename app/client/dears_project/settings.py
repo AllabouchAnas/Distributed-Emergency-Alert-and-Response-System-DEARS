@@ -75,11 +75,14 @@ WSGI_APPLICATION = 'dears_project.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
+import dj_database_url
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default='postgresql://neondb_owner:npg_tNkpcx9bunX0@ep-sweet-king-ah1656ny-pooler.c-3.us-east-1.aws.neon.tech/dears?sslmode=require',
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
 
 
