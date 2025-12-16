@@ -11,13 +11,23 @@
         <p class="text-muted">A cutting-edge distributed system that connects citizens with emergency<br>services
             through intelligent routing and real-time coordination.</p>
 
+
         <div class="hero-actions">
+            {% if user.is_authenticated %}
             <a href="{% url 'declare' %}" class="btn btn-primary btn-large">
                 ⚠ Submit Emergency Alert
             </a>
-            {% if user.is_authenticated %}
+            {% if user.profile.is_admin %}
             <a href="{% url 'dashboard' %}" class="btn btn-secondary btn-large">
                 📊 Admin Dashboard
+            </a>
+            {% endif %}
+            {% else %}
+            <a href="{% url 'register' %}" class="btn btn-primary btn-large">
+                📝 Create Account to Report Emergency
+            </a>
+            <a href="{% url 'login' %}" class="btn btn-secondary btn-large">
+                🔐 Login
             </a>
             {% endif %}
         </div>

@@ -17,7 +17,19 @@ logger = logging.getLogger(__name__)
 
 def home(request):
     """Home page with system overview and action buttons."""
+    # Handle status check form submission
+    search_id = request.GET.get('search_id')
+    if search_id:
+        try:
+            # Try to parse as UUID and redirect to status page
+            import uuid
+            report_id = uuid.UUID(search_id.strip())
+            return redirect('status', report_id=report_id)
+        except (ValueError, AttributeError):
+            messages.error(request, 'Invalid report ID format. Please enter a valid UUID.')
+    
     return render(request, 'home.html')
+
 
 
 def register(request):
