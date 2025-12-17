@@ -18,19 +18,16 @@ def send_alert_to_dispatcher(alert_data):
     try:
         dispatcher_url = settings.DISPATCHER_SERVICE_URL
         
-        # Prepare payload for dispatcher
+        # Prepare payload for dispatcher (matches dispatcher schemas.py)
         payload = {
+            'user_id': alert_data.get('user_id'),
             'emergency_type': alert_data.get('emergency_type'),
             'description': alert_data.get('description'),
             'location': alert_data.get('location'),
-            'latitude': float(alert_data.get('latitude')) if alert_data.get('latitude') else None,
-            'longitude': float(alert_data.get('longitude')) if alert_data.get('longitude') else None,
-            'contact_name': alert_data.get('name'),
-            'contact_info': alert_data.get('contact_info'),
-            'report_id': str(alert_data.get('id')),
         }
         
         logger.info(f"Sending alert to dispatcher: {dispatcher_url}")
+        logger.debug(f"Payload: {payload}")
         
         # Make POST request to dispatcher service
         response = requests.post(
@@ -41,20 +38,22 @@ def send_alert_to_dispatcher(alert_data):
         )
         
         if response.status_code == 200 or response.status_code == 201:
-            logger.info(f"Alert successfully sent to dispatcher for report {alert_data.get('id')}")
-            return True, "Alert successfully dispatched to emergency services"
+            response_data = response.json()
+            alert_id = response_data.get('alert_id')
+            logger.info(f"Alert successfully sent to dispatcher, alert_id: {alert_id}")
+            return True, alert_id
         else:
             logger.error(f"Dispatcher returned error: {response.status_code} - {response.text}")
-            return False, f"Dispatcher service error: {response.status_code}"
+            return False, None
             
     except requests.exceptions.ConnectionError:
         logger.error(f"Failed to connect to dispatcher service at {dispatcher_url}")
-        return False, "Unable to connect to dispatcher service. Alert saved locally."
+        return False, None
         
     except requests.exceptions.Timeout:
         logger.error("Request to dispatcher service timed out")
-        return False, "Dispatcher service timeout. Alert saved locally."
+        return False, None
         
     except Exception as e:
         logger.error(f"Unexpected error sending alert to dispatcher: {str(e)}")
-        return False, f"Error communicating with dispatcher: {str(e)}"
+        return False, None

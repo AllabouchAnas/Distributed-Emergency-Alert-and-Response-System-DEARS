@@ -22,11 +22,12 @@
                 </a>
                 <nav>
                     <ul class="nav-links">
-                        <li><a href="{% url 'home' %}">Home</a></li>
                         {% if user.is_authenticated %}
                         <li><a href="{% url 'declare' %}">Report Emergency</a></li>
                         {% if user.profile.is_admin %}
                         <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                        {% elif user.profile.is_responder %}
+                        <li><a href="{% url 'responder_dashboard' %}">My Dashboard</a></li>
                         {% endif %}
                         <li style="color: #6b7280; padding: 0.5rem 1rem;">
                             👤 {{ user.get_full_name|default:user.username }}
@@ -88,6 +89,19 @@
     </footer>
 
     <script src="{% static 'js/theme-toggle.js' %}"></script>
+    <script>
+        // Auto-dismiss messages after 5 seconds
+        setTimeout(function () {
+            const messages = document.querySelectorAll('.alert');
+            messages.forEach(function (message) {
+                message.style.transition = 'opacity 0.5s ease-out';
+                message.style.opacity = '0';
+                setTimeout(function () {
+                    message.remove();
+                }, 500);
+            });
+        }, 5000);
+    </script>
     {% block extra_scripts %}{% endblock %}
 </body>
 

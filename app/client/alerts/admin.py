@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
-from .models import EmergencyReport, UserProfile
+from .models import EmergencyReport, UserProfile, Zone, ResponseUnit, Alert, Response
 
 
 class UserProfileInline(admin.StackedInline):
@@ -9,7 +9,7 @@ class UserProfileInline(admin.StackedInline):
     model = UserProfile
     can_delete = False
     verbose_name_plural = 'Profile'
-    fields = ('role', 'phone_number', 'address', 'city')
+    fields = ('role', 'assigned_unit', 'phone_number', 'address', 'city')
 
 
 class UserAdmin(BaseUserAdmin):
@@ -97,3 +97,100 @@ class EmergencyReportAdmin(admin.ModelAdmin):
     get_reporter_name.short_description = 'Reporter'
     
     ordering = ('-created_at',)
+
+
+@admin.register(Zone)
+class ZoneAdmin(admin.ModelAdmin):
+    """Admin interface for Zones."""
+    list_display = ('zone_name', 'description')
+    search_fields = ('zone_name', 'description')
+
+
+@admin.register(ResponseUnit)
+class ResponseUnitAdmin(admin.ModelAdmin):
+    """Admin interface for Response Units."""
+    list_display = ('unit_name', 'unit_type', 'status', 'current_location', 'updated_at')
+    list_filter = ('unit_type', 'status')
+    search_fields = ('unit_name', 'current_location', 'contact_info')
+    readonly_fields = ('created_at', 'updated_at')
+    
+    fieldsets = (
+        ('Unit Information', {
+            'fields': ('unit_name', 'unit_type', 'status')
+        }),
+        ('Location', {
+            'fields': ('current_location',)
+        }),
+        ('Contact', {
+            'fields': ('contact_info',)
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+
+@admin.register(Alert)
+class AlertAdmin(admin.ModelAdmin):
+    """Admin interface for Alerts."""
+    list_display = ('id', 'emergency_type', 'get_user_name', 'status', 'location', 'created_at')
+    list_filter = ('status', 'emergency_type', 'created_at')
+    search_fields = ('user__username', 'user__first_name', 'user__last_name', 'description', 'location')
+    readonly_fields = ('created_at', 'updated_at')
+    
+    fieldsets = (
+        ('Alert Information', {
+            'fields': ('id', 'status')
+        }),
+        ('User', {
+            'fields': ('user',)
+        }),
+        ('Emergency Details', {
+            'fields': ('emergency_type', 'description')
+        }),
+        ('Location', {
+            'fields': ('location', 'latitude', 'longitude', 'zone')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def get_user_name(self, obj):
+        """Display user's full name."""
+        return obj.user.get_full_name() or obj.user.username
+    
+    get_user_name.short_description = 'User'
+    
+    ordering = ('-created_at',)
+
+
+@admin.register(Response)
+class ResponseAdmin(admin.ModelAdmin):
+    """Admin interface for Responses."""
+    list_display = ('id', 'get_alert_info', 'response_unit', 'status', 'assigned_at', 'completed_at')
+    list_filter = ('status', 'assigned_at')
+    search_fields = ('response_unit__unit_name', 'alert__id', 'notes')
+    readonly_fields = ('assigned_at',)
+    
+    fieldsets = (
+        ('Response Information', {
+            'fields': ('alert', 'response_unit', 'status')
+        }),
+        ('Notes', {
+            'fields': ('notes',)
+        }),
+        ('Timeline', {
+            'fields': ('assigned_at', 'arrived_at', 'completed_at')
+        }),
+    )
+    
+    def get_alert_info(self, obj):
+        """Display alert information."""
+        return f"Alert #{obj.alert.id} - {obj.alert.get_emergency_type_display()}"
+    
+    get_alert_info.short_description = 'Alert'
+    
+    ordering = ('-assigned_at',)

@@ -90,6 +90,73 @@
                 </div>
             </div>
             {% endif %}
+
+            <!-- Safety Instructions While Waiting -->
+            {% if report.status == 'NEW' or report.status == 'IN_PROGRESS' %}
+            <div class="safety-instructions-box">
+                <h3 class="safety-title">
+                    <span class="safety-icon">⚠️</span>
+                    Important: What To Do While Waiting
+                </h3>
+
+                <div class="safety-content">
+                    <div class="safety-section">
+                        <h4>🏠 Stay Safe</h4>
+                        <ul>
+                            <li>If safe, remain in your current location</li>
+                            <li>Move to a secure area away from immediate danger</li>
+                            <li>Do NOT attempt to confront dangerous situations yourself</li>
+                        </ul>
+                    </div>
+
+                    <div class="safety-section">
+                        <h4>📱 Keep Communication Open</h4>
+                        <ul>
+                            <li>Keep your phone charged and accessible</li>
+                            <li>Answer calls from unknown numbers (could be emergency services)</li>
+                            <li>Do NOT hang up if you called 911</li>
+                        </ul>
+                    </div>
+
+                    {% if report.emergency_type == 'MEDICAL' %}
+                    <div class="safety-section emergency-specific medical">
+                        <h4>🚑 Medical Emergency - Do This Now:</h4>
+                        <ul>
+                            <li><strong>Do NOT move the patient</strong> unless absolutely necessary</li>
+                            <li>If trained, provide first aid or CPR if needed</li>
+                            <li>Keep the patient comfortable and calm</li>
+                            <li>Unlock doors for quick paramedic access</li>
+                        </ul>
+                    </div>
+                    {% elif report.emergency_type == 'FIRE' %}
+                    <div class="safety-section emergency-specific fire">
+                        <h4>🔥 Fire Emergency - Critical Actions:</h4>
+                        <ul>
+                            <li><strong>EVACUATE IMMEDIATELY</strong> if you see fire or smoke</li>
+                            <li>Close doors behind you to contain the fire</li>
+                            <li>Do NOT use elevators - use stairs only</li>
+                            <li><strong>Do NOT re-enter</strong> the building for any reason</li>
+                        </ul>
+                    </div>
+                    {% elif report.emergency_type == 'POLICE' %}
+                    <div class="safety-section emergency-specific police">
+                        <h4>🚔 Police Emergency - Safety First:</h4>
+                        <ul>
+                            <li>Find a safe, well-lit area if possible</li>
+                            <li>Lock yourself in a room if threatened</li>
+                            <li>Do NOT disturb any evidence at the scene</li>
+                            <li>Comply immediately with police instructions</li>
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    <div class="eta-box">
+                        <strong>⏱️ Estimated Response Time: 5-15 minutes</strong>
+                        <p>Emergency units are being dispatched. Response time varies based on location and traffic.</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
         </div>
 
         <!-- Check Another Report -->
@@ -231,6 +298,99 @@
         color: var(--color-emergency-critical);
         font-size: 0.875rem;
         margin-top: var(--spacing-xs);
+    }
+
+    /* Safety Instructions Box */
+    .safety-instructions-box {
+        background: rgba(255, 193, 7, 0.1);
+        border: 2px solid #ffc107;
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-xl);
+        margin-top: var(--spacing-xl);
+    }
+
+    .safety-title {
+        color: #ffc107;
+        font-size: 1.5rem;
+        margin-bottom: var(--spacing-lg);
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+    }
+
+    .safety-icon {
+        font-size: 1.75rem;
+    }
+
+    .safety-content {
+        color: var(--color-text-secondary);
+    }
+
+    .safety-section {
+        margin-bottom: var(--spacing-lg);
+        padding: var(--spacing-md);
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: var(--radius-md);
+    }
+
+    .safety-section h4 {
+        color: var(--color-text-primary);
+        margin-bottom: var(--spacing-sm);
+        font-size: 1.125rem;
+    }
+
+    .safety-section ul {
+        margin: 0;
+        padding-left: var(--spacing-lg);
+        list-style-type: disc;
+    }
+
+    .safety-section li {
+        margin-bottom: var(--spacing-xs);
+        line-height: 1.6;
+    }
+
+    .safety-section strong {
+        color: #ffc107;
+        font-weight: 700;
+    }
+
+    .emergency-specific {
+        border-left: 4px solid;
+    }
+
+    .emergency-specific.medical {
+        border-left-color: #10b981;
+        background: rgba(16, 185, 129, 0.1);
+    }
+
+    .emergency-specific.fire {
+        border-left-color: #ef4444;
+        background: rgba(239, 68, 68, 0.1);
+    }
+
+    .emergency-specific.police {
+        border-left-color: #3b82f6;
+        background: rgba(59, 130, 246, 0.1);
+    }
+
+    .eta-box {
+        background: rgba(59, 130, 246, 0.1);
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        padding: var(--spacing-md);
+        border-radius: var(--radius-md);
+        margin-top: var(--spacing-lg);
+    }
+
+    .eta-box strong {
+        color: #3b82f6;
+        display: block;
+        margin-bottom: var(--spacing-xs);
+    }
+
+    .eta-box p {
+        margin: 0;
+        font-size: 0.875rem;
     }
 
     @media (max-width: 768px) {

@@ -57,36 +57,39 @@ def declare_emergency(request):
         form = EmergencyReportForm(request.POST)
         
         if form.is_valid():
-            # Save the report with the current user
-            report = form.save(commit=False)
-            report.reported_by = request.user
-            report.save()
-            
-            # Get user profile for contact info
-            profile = request.user.profile
-            
+            # Do NOT save EmergencyReport - only send to dispatcher
             # Prepare data for dispatcher
             alert_data = {
-                'id': str(report.id),
-                'name': request.user.get_full_name(),
-                'contact_info': profile.phone_number,
-                'emergency_type': report.emergency_type,
-                'location': report.location,
-                'latitude': float(report.latitude) if report.latitude else None,
-                'longitude': float(report.longitude) if report.longitude else None,
-                'description': report.description,
+                'user_id': request.user.id,
+                'emergency_type': form.cleaned_data['emergency_type'],
+                'location': form.cleaned_data['location'],
+                'description': form.cleaned_data['description'],
             }
             
             # Send to dispatcher service
-            success, message = send_alert_to_dispatcher(alert_data)
+            success, alert_id = send_alert_to_dispatcher(alert_data)
             
-            if success:
-                messages.success(request, 'Emergency alert submitted successfully! Help is on the way.')
+            if success and alert_id:
+                # Create Alert record in local DB for tracking (optional)
+                from .models import Alert
+                alert = Alert.objects.create(
+                    user=request.user,
+                    emergency_type=form.cleaned_data['emergency_type'],
+                    location=form.cleaned_data['location'],
+                    latitude=form.cleaned_data.get('latitude'),
+                    longitude=form.cleaned_data.get('longitude'),
+                    description=form.cleaned_data['description'],
+                    status=Alert.DISPATCHED
+                )
+                
+                messages.success(request, f'Emergency alert dispatched successfully! Alert ID: {alert_id}')
+                messages.info(request, 'Emergency services have been notified. Help is on the way.')
+                
+                # Redirect to status page
+                return redirect('status', report_id=alert.id)
             else:
-                messages.warning(request, f'Alert saved locally. {message}')
-            
-            # Redirect to status page
-            return redirect('status', report_id=report.id)
+                messages.error(request, 'Failed to send emergency alert to dispatcher. Please try again or call emergency services directly.')
+                # Stay on form
     else:
         form = EmergencyReportForm()
     
@@ -121,37 +124,80 @@ def status_check(request, report_id):
 
 @login_required
 def dashboard(request):
-    """Admin dashboard for managing all emergency reports."""
+    """Admin dashboard for managing all emergency reports, alerts, and response units."""
     # Check if user is admin
     if not request.user.profile.is_admin():
         messages.error(request, 'Access denied. Admin privileges required.')
         return redirect('home')
     
+    # Get current tab
+    tab = request.GET.get('tab', 'reports')
+    
     # Get filter parameter
     status_filter = request.GET.get('status', 'all')
     
-    # Base queryset
+    # Emergency Reports data
     reports = EmergencyReport.objects.all().select_related('reported_by', 'reported_by__profile')
-    
-    # Apply filters
     if status_filter and status_filter != 'all':
         reports = reports.filter(status=status_filter)
     
-    # Get statistics
-    stats = {
+    reports_stats = {
         'total': EmergencyReport.objects.count(),
         'active': EmergencyReport.objects.filter(status=EmergencyReport.NEW).count(),
         'in_progress': EmergencyReport.objects.filter(status=EmergencyReport.IN_PROGRESS).count(),
         'resolved': EmergencyReport.objects.filter(status=EmergencyReport.RESOLVED).count(),
     }
     
+    # Alerts data
+    from .models import Alert, ResponseUnit, Response
+    alerts = Alert.objects.all().select_related('user', 'zone')
+    if status_filter and status_filter != 'all':
+        alerts = alerts.filter(status=status_filter)
+    
+    alerts_stats = {
+        'total': Alert.objects.count(),
+        'new': Alert.objects.filter(status=Alert.NEW).count(),
+        'dispatched': Alert.objects.filter(status=Alert.DISPATCHED).count(),
+        'in_progress': Alert.objects.filter(status=Alert.IN_PROGRESS).count(),
+        'resolved': Alert.objects.filter(status=Alert.RESOLVED).count(),
+    }
+    
+    # Response Units data
+    units = ResponseUnit.objects.all()
+    unit_type_filter = request.GET.get('unit_type', 'all')
+    if unit_type_filter and unit_type_filter != 'all':
+        units = units.filter(unit_type=unit_type_filter)
+    
+    units_stats = {
+        'total': ResponseUnit.objects.count(),
+        'available': ResponseUnit.objects.filter(status=ResponseUnit.AVAILABLE).count(),
+        'en_route': ResponseUnit.objects.filter(status=ResponseUnit.EN_ROUTE).count(),
+        'on_site': ResponseUnit.objects.filter(status=ResponseUnit.ON_SITE).count(),
+        'police': ResponseUnit.objects.filter(unit_type=ResponseUnit.POLICE).count(),
+        'fire': ResponseUnit.objects.filter(unit_type=ResponseUnit.FIRE).count(),
+        'medical': ResponseUnit.objects.filter(unit_type=ResponseUnit.MEDICAL).count(),
+    }
+    
+    # Active Responses
+    active_responses = Response.objects.filter(
+        status__in=[Response.ASSIGNED, Response.EN_ROUTE, Response.ON_SITE]
+    ).select_related('alert', 'response_unit')
+    
     context = {
         'reports': reports,
-        'stats': stats,
+        'reports_stats': reports_stats,
+        'alerts': alerts,
+        'alerts_stats': alerts_stats,
+        'units': units,
+        'units_stats': units_stats,
+        'active_responses': active_responses,
         'current_filter': status_filter,
+        'current_tab': tab,
+        'unit_type_filter': unit_type_filter,
     }
     
     return render(request, 'dashboard.html', context)
+
 
 
 @login_required
@@ -181,12 +227,24 @@ def update_status(request):
         
         # Return updated table row HTML
         return render(request, 'partials/report_row.html', {'report': report})
-        
+    
     except EmergencyReport.DoesNotExist:
         return JsonResponse({'error': 'Report not found'}, status=404)
     except Exception as e:
         logger.error(f"Error updating report status: {str(e)}")
         return JsonResponse({'error': str(e)}, status=500)
+
+
+
+@login_required
+def alert_confirmation(request):
+    """Display alert confirmation page with alert ID."""
+    alert_id = request.session.pop('last_alert_id', None)
+    
+    return render(request, 'alert_confirmation.html', {
+        'alert_id': alert_id,
+    })
+
 
 
 class CustomLoginView(LoginView):
@@ -198,6 +256,8 @@ class CustomLoginView(LoginView):
         """Redirect based on user role."""
         if self.request.user.profile.is_admin():
             return '/dashboard/'
+        elif self.request.user.profile.is_responder():
+            return '/responder/'
         return '/'
 
 
