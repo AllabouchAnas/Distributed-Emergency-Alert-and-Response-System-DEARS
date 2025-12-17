@@ -26,3 +26,16 @@ ENV/
 # ============================
 # VS Code
 .vscode/
+# ============================
+# DJANGO
+# ============================
+# SQLite databases (no longer used - migrated to PostgreSQL)
+db.sqlite3
+db.sqlite3-journal
+
+# Django static and media files
+staticfiles/
+media/
+
+# Django logs
+*.log

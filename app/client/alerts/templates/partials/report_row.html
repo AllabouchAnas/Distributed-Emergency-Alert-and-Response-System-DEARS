@@ -1,0 +1,33 @@
+<tr>
+    <td>{{ report.id|slice:":8" }}...</td>
+    <td>
+        <span style="font-weight: 600;">
+            {% if report.emergency_type == 'POLICE' %}📞{% elif report.emergency_type == 'FIRE' %}🔥{% elif
+            report.emergency_type == 'MEDICAL' %}❤️{% else %}⚠{% endif %}
+            {{ report.get_emergency_type_display }}
+        </span>
+    </td>
+    <td>{{ report.description|truncatewords:10 }}</td>
+    <td>{{ report.location|truncatewords:5 }}</td>
+    <td>
+        <span class="status-badge {{ report.get_status_badge_class }}">
+            {{ report.get_status_display }}
+        </span>
+    </td>
+    <td>{{ report.created_at|timesince }} ago</td>
+    <td>
+        <form hx-post="{% url 'update_status' %}" hx-target="closest tr" hx-swap="outerHTML" style="display: inline;">
+            {% csrf_token %}
+            <input type="hidden" name="report_id" value="{{ report.id }}">
+            <select name="status" class="form-select" style="padding: 0.35rem 0.75rem; font-size: 0.85rem;"
+                onchange="this.form.requestSubmit()">
+                <option value="NEW" {% if report.status == 'NEW' %}selected{% endif %}>New</option>
+                <option value="IN_PROGRESS" {% if report.status == 'IN_PROGRESS' %}selected{% endif %}>In Progress
+                </option>
+                <option value="RESOLVED" {% if report.status == 'RESOLVED' %}selected{% endif %}>Resolved</option>
+            </select>
+        </form>
+        <a href="{% url 'status' report.id %}" class="btn btn-secondary"
+            style="padding: 0.35rem 0.75rem; font-size: 0.85rem; margin-left: 0.5rem;">View</a>
+    </td>
+</tr>
