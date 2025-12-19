@@ -20,14 +20,10 @@ def send_alert_to_dispatcher(alert_data):
         
         # Prepare payload for dispatcher
         payload = {
+            'user_id': alert_data.get('user_id'),
             'emergency_type': alert_data.get('emergency_type'),
             'description': alert_data.get('description'),
             'location': alert_data.get('location'),
-            'latitude': float(alert_data.get('latitude')) if alert_data.get('latitude') else None,
-            'longitude': float(alert_data.get('longitude')) if alert_data.get('longitude') else None,
-            'contact_name': alert_data.get('name'),
-            'contact_info': alert_data.get('contact_info'),
-            'report_id': str(alert_data.get('id')),
         }
         
         logger.info(f"Sending alert to dispatcher: {dispatcher_url}")

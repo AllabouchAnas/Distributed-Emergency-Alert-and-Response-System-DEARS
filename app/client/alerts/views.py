@@ -75,6 +75,7 @@ def declare_emergency(request):
                 'latitude': float(report.latitude) if report.latitude else None,
                 'longitude': float(report.longitude) if report.longitude else None,
                 'description': report.description,
+                'user_id': request.user.id,
             }
             
             # Send to dispatcher service
