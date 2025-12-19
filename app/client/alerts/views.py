@@ -60,10 +60,15 @@ def declare_emergency(request):
             # Do NOT save EmergencyReport - only send to dispatcher
             # Prepare data for dispatcher
             alert_data = {
+                'id': str(report.id),
+                'name': request.user.get_full_name(),
+                'contact_info': profile.phone_number,
+                'emergency_type': report.emergency_type,
+                'location': report.location,
+                'latitude': float(report.latitude) if report.latitude else None,
+                'longitude': float(report.longitude) if report.longitude else None,
+                'description': report.description,
                 'user_id': request.user.id,
-                'emergency_type': form.cleaned_data['emergency_type'],
-                'location': form.cleaned_data['location'],
-                'description': form.cleaned_data['description'],
             }
             
             # Send to dispatcher service
