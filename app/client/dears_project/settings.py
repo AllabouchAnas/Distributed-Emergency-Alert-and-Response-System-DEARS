@@ -136,5 +136,6 @@ LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/'
 
 # DEARS Application Settings
-DISPATCHER_SERVICE_URL = config('DISPATCHER_SERVICE_URL', default='http://localhost:8001/api/alerts/')
+DISPATCHER_SERVICE_URL = config('DISPATCHER_SERVICE_URL', default='http://localhost:8001/submit-alert')
+
 

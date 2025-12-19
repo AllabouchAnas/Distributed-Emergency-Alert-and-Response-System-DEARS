@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+
+{% block title %}Alert Submitted - DEARS{% endblock %}
+
+{% block content %}
+<section style="min-height: 70vh; display: flex; align-items: center; justify-content: center; padding: 3rem 0;">
+    <div class="container">
+        <div style="max-width: 700px; margin: 0 auto; text-align: center;">
+            <div class="confirmation-card">
+                <div class="confirmation-icon">✅</div>
+                <h1>Alert Submitted Successfully!</h1>
+                <p class="confirmation-message">Your emergency alert has been dispatched to our response teams. Help is
+                    on the way.</p>
+
+                {% if alert_id %}
+                <div class="alert-id-box">
+                    <span class="alert-id-label">Alert ID:</span>
+                    <span class="alert-id-value">{{ alert_id }}</span>
+                </div>
+                {% endif %}
+
+                <div class="confirmation-details">
+                    <h3>What happens next?</h3>
+                    <ol class="steps-list">
+                        <li>🚨 Your alert has been sent to the dispatcher service</li>
+                        <li>📡 Emergency responders have been notified</li>
+                        <li>🚓 The nearest available unit will be dispatched</li>
+                        <li>🏃 Response teams are en route to your location</li>
+                    </ol>
+                </div>
+
+                <div class="action-buttons">
+                    <a href="{% url 'home' %}" class="btn btn-primary">Return Home</a>
+                    {% if user.profile.is_admin %}
+                    <a href="{% url 'dashboard' %}?tab=alerts" class="btn btn-secondary">View in Dashboard</a>
+                    {% endif %}
+                </div>
+
+                <div class="safety-tips">
+                    <h4>⚠️ Important Safety Tips</h4>
+                    <ul>
+                        <li>Stay calm and in a safe location if possible</li>
+                        <li>Keep your phone nearby for updates</li>
+                        <li>Do NOT hang up if you called 911</li>
+                        <li>Follow any instructions from emergency personnel</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .confirmation-card {
+        background: var(--card-bg);
+        border-radius: 24px;
+        padding: 3rem;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .confirmation-icon {
+        font-size: 5rem;
+        margin-bottom: 1.5rem;
+        animation: bounce 1s ease-in-out;
+    }
+
+    @keyframes bounce {
+
+        0%,
+        100% {
+            transform: translateY(0);
+        }
+
+        50% {
+            transform: translateY(-20px);
+        }
+    }
+
+    .confirmation-card h1 {
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+        font-size: 2.5rem;
+    }
+
+    .confirmation-message {
+        color: var(--text-secondary);
+        font-size: 1.25rem;
+        margin-bottom: 2rem;
+    }
+
+    .alert-id-box {
+        background: rgba(var(--primary-rgb), 0.1);
+        border: 2px solid var(--primary);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin: 2rem 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .alert-id-label {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .alert-id-value {
+        color: var(--primary);
+        font-size: 1.5rem;
+        font-weight: 700;
+        font-family: monospace;
+    }
+
+    .confirmation-details {
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 16px;
+        padding: 2rem;
+        margin: 2rem 0;
+        text-align: left;
+    }
+
+    .confirmation-details h3 {
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+    }
+
+    .steps-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .steps-list li {
+        color: var(--text-secondary);
+        padding: 0.75rem 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        font-size: 1.125rem;
+    }
+
+    .steps-list li:last-child {
+        border-bottom: none;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin: 2rem 0;
+        flex-wrap: wrap;
+    }
+
+    .btn-secondary {
+        background: var(--card-bg);
+        color: var(--text-primary);
+        border: 2px solid var(--primary);
+    }
+
+    .btn-secondary:hover {
+        background: var(--primary);
+        color: white;
+    }
+
+    .safety-tips {
+        background: rgba(255, 193, 7, 0.1);
+        border: 2px solid #ffc107;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-top: 2rem;
+        text-align: left;
+    }
+
+    .safety-tips h4 {
+        color: #ffc107;
+        margin-bottom: 1rem;
+    }
+
+    .safety-tips ul {
+        color: var(--text-secondary);
+        margin: 0;
+        padding-left: 1.5rem;
+    }
+
+    .safety-tips li {
+        margin-bottom: 0.5rem;
+    }
+</style>
+{% endblock %}

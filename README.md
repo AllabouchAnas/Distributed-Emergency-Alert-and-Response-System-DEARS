@@ -7,6 +7,33 @@
 
 ---
 
+## 🔑 User Credentials for Testing
+
+The system includes the following pre-configured user accounts:
+
+### Admin Account
+- **Username:** `admin`
+- **Password:** `admin`
+- **Access:** Full system access, admin dashboard at `/dashboard/`
+
+### Regular User Account
+- **Username:** `user`
+- **Password:** `user`
+- **Access:** Can submit emergency alerts
+
+### Responder Accounts (Response Units)
+
+| Username      | Password      | Assigned Unit    | Role     |
+|---------------|---------------|------------------|----------|
+| `officer1`    | `responder123`| Police Car 1     | Responder|
+| `officer2`    | `responder123`| Police Car 2     | Responder|
+| `firefighter1`| `responder123`| Fire Truck 1     | Responder|
+| `paramedic1`  | `responder123`| Ambulance 1      | Responder|
+
+**Responder Dashboard:** Login with any responder account and visit `/responder/` to view and manage assigned missions.
+
+---
+
 ## 1. Introduction and Project Objective
 
 ### 1.1 Project Objective
