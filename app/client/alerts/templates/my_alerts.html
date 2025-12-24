@@ -1,0 +1,413 @@
+{% extends 'base.html' %}
+
+{% block title %}My Alerts - DEARS{% endblock %}
+
+{% block content %}
+<section style="min-height: 70vh; padding: 3rem 0;">
+    <div class="container">
+        <div style="max-width: 1200px; margin: 0 auto;">
+            <!-- Header -->
+            <div class="page-header">
+                <h1>🚨 My Emergency Alerts</h1>
+                <p class="subtitle">Track all your emergency alerts and their status</p>
+            </div>
+
+            {% if alerts_with_responses %}
+            <div class="alerts-list">
+                {% for item in alerts_with_responses %}
+                <a href="{% url 'status' report_id=item.alert.id %}" class="alert-card-link">
+                    <div class="alert-card">
+                        <div class="alert-card-header">
+                            <div class="alert-info">
+                                <h3>Alert #{{ item.alert.id }}</h3>
+                                <p class="alert-date">{{ item.alert.created_at|date:"F d, Y - H:i" }}</p>
+                            </div>
+                            <span class="status-badge status-{{ item.alert.status|lower }}">
+                                {{ item.alert.get_status_display }}
+                            </span>
+                        </div>
+
+                        <div class="alert-card-body">
+                            <div class="alert-summary">
+                                <span class="emergency-icon">
+                                    {% if item.alert.emergency_type == 'POLICE' %}🚓
+                                    {% elif item.alert.emergency_type == 'FIRE' %}🚒
+                                    {% elif item.alert.emergency_type == 'MEDICAL' %}🚑
+                                    {% endif %}
+                                </span>
+                                <div>
+                                    <strong class="emergency-{{ item.alert.emergency_type|lower }}">
+                                        {{ item.alert.get_emergency_type_display }}
+                                    </strong>
+                                    <p class="alert-location">📍 {{ item.alert.location|truncatewords:10 }}</p>
+                                </div>
+                            </div>
+                            {% if item.responses %}
+                            <div class="response-count">
+                                📡 {{ item.responses.count }} response unit(s) assigned
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="view-details">
+                            Click to view full details →
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="no-alerts">
+                <div class="no-alerts-icon">📭</div>
+                <h2>No Alerts Yet</h2>
+                <p>You haven't submitted any emergency alerts.</p>
+                <a href="{% url 'declare' %}" class="btn btn-primary">Report Emergency</a>
+            </div>
+            {% endif %}
+
+            <div class="action-buttons">
+                <a href="{% url 'home' %}" class="btn btn-secondary">Return Home</a>
+                <a href="{% url 'declare' %}" class="btn btn-primary">Report New Emergency</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .page-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .page-header h1 {
+        color: var(--text-primary);
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+        color: var(--text-secondary);
+        font-size: 1.125rem;
+    }
+
+    .alerts-list {
+        display: grid;
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+
+    .alert-card-link {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+    }
+
+    .alert-card {
+        background: var(--card-bg);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .alert-card-link:hover .alert-card {
+        transform: translateY(-4px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        border-color: var(--primary);
+    }
+
+    .alert-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 1.5rem;
+        background: rgba(255, 255, 255, 0.03);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .alert-info h3 {
+        color: var(--text-primary);
+        margin: 0 0 0.25rem 0;
+        font-size: 1.25rem;
+    }
+
+    .alert-date {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        margin: 0;
+    }
+
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status-new {
+        background: rgba(33, 150, 243, 0.2);
+        color: #2196f3;
+        border: 1px solid #2196f3;
+    }
+
+    .status-dispatched {
+        background: rgba(255, 152, 0, 0.2);
+        color: #ff9800;
+        border: 1px solid #ff9800;
+    }
+
+    .status-in_progress {
+        background: rgba(156, 39, 176, 0.2);
+        color: #9c27b0;
+        border: 1px solid #9c27b0;
+    }
+
+    .status-resolved {
+        background: rgba(76, 175, 80, 0.2);
+        color: #4caf50;
+        border: 1px solid #4caf50;
+    }
+
+    .status-assigned {
+        background: rgba(33, 150, 243, 0.2);
+        color: #2196f3;
+        border: 1px solid #2196f3;
+    }
+
+    .status-en_route {
+        background: rgba(255, 152, 0, 0.2);
+        color: #ff9800;
+        border: 1px solid #ff9800;
+    }
+
+    .status-on_site {
+        background: rgba(156, 39, 176, 0.2);
+        color: #9c27b0;
+        border: 1px solid #9c27b0;
+    }
+
+    .status-completed {
+        background: rgba(76, 175, 80, 0.2);
+        color: #4caf50;
+        border: 1px solid #4caf50;
+    }
+
+    .alert-card-body {
+        padding: 1.5rem;
+    }
+
+    .alert-summary {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .emergency-icon {
+        font-size: 2.5rem;
+        flex-shrink: 0;
+    }
+
+    .alert-summary strong {
+        display: block;
+        font-size: 1.125rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .alert-location {
+        color: var(--text-secondary);
+        margin: 0;
+        font-size: 0.95rem;
+    }
+
+    .response-count {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        padding: 0.75rem;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 8px;
+        margin-top: 1rem;
+    }
+
+    .view-details {
+        padding: 1rem 1.5rem;
+        background: rgba(var(--primary-rgb), 0.1);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--primary);
+        font-weight: 600;
+        text-align: center;
+        font-size: 0.875rem;
+    }
+
+    .alert-card-link:hover .view-details {
+        background: rgba(var(--primary-rgb), 0.2);
+    }
+
+    .alert-detail {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        align-items: flex-start;
+    }
+
+    .detail-icon {
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+
+    .alert-detail strong {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        display: block;
+        margin-bottom: 0.25rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .alert-detail p {
+        color: var(--text-primary);
+        margin: 0;
+        font-size: 1rem;
+    }
+
+    .emergency-police {
+        color: #2196f3;
+        font-weight: 600;
+    }
+
+    .emergency-fire {
+        color: #f44336;
+        font-weight: 600;
+    }
+
+    .emergency-medical {
+        color: #4caf50;
+        font-weight: 600;
+    }
+
+    .responses-section {
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .responses-section h4 {
+        color: var(--text-primary);
+        margin: 0 0 1rem 0;
+        font-size: 1rem;
+    }
+
+    .responses-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .response-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .response-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .response-info strong {
+        color: var(--text-primary);
+        font-size: 0.95rem;
+    }
+
+    .response-type {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+    }
+
+    .response-status {
+        font-size: 0.75rem;
+        padding: 0.375rem 0.75rem;
+    }
+
+    .no-response {
+        text-align: center;
+        padding: 2rem;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 8px;
+        margin-top: 1rem;
+    }
+
+    .no-response p {
+        color: var(--text-secondary);
+        margin: 0;
+    }
+
+    .no-alerts {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: var(--card-bg);
+        border-radius: 16px;
+        border: 2px dashed rgba(255, 255, 255, 0.1);
+        margin-bottom: 2rem;
+    }
+
+    .no-alerts-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+    }
+
+    .no-alerts h2 {
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .no-alerts p {
+        color: var(--text-secondary);
+        margin-bottom: 2rem;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .btn-secondary {
+        background: var(--card-bg);
+        color: var(--text-primary);
+        border: 2px solid var(--primary);
+    }
+
+    .btn-secondary:hover {
+        background: var(--primary);
+        color: white;
+    }
+
+    @media (max-width: 768px) {
+        .alert-card-header {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .alert-detail {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .response-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+    }
+</style>
+{% endblock %}

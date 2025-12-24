@@ -1,0 +1,16 @@
+# FastAPI and ASGI server (for Dispatcher)
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+
+# Database (Shared)
+sqlalchemy==2.0.23
+psycopg2-binary==2.9.11
+
+# RPC Framework (Shared)
+rpyc==5.3.1
+
+# Configuration (Shared)
+python-dotenv==1.0.0
+
+# Data validation (Dispatcher)
+pydantic==2.5.0

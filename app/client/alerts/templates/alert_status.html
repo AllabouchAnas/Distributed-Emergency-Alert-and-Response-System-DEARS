@@ -1,0 +1,466 @@
+{% extends 'base.html' %}
+
+{% block title %}Alert Status - DEARS{% endblock %}
+
+{% block content %}
+<section style="min-height: 70vh; padding: 3rem 0;">
+    <div class="container">
+        <div style="max-width: 900px; margin: 0 auto;">
+            <!-- Header -->
+            <div class="status-header">
+                <h1>🚨 Alert Status</h1>
+                <p class="subtitle">Track your emergency alert in real-time</p>
+            </div>
+
+            <!-- Alert Information Card -->
+            <div class="alert-info-card">
+                <div class="alert-header">
+                    <div>
+                        <h2>Alert #{{ alert.id }}</h2>
+                        <p class="alert-timestamp">{{ alert.created_at|date:"F d, Y - H:i" }}</p>
+                    </div>
+                    <div class="status-badge status-{{ alert.status|lower }}">
+                        {{ alert.get_status_display }}
+                    </div>
+                </div>
+
+                <div class="alert-details">
+                    <div class="detail-row">
+                        <span class="detail-label">Emergency Type:</span>
+                        <span class="detail-value emergency-{{ alert.emergency_type|lower }}">
+                            {{ alert.get_emergency_type_display }}
+                        </span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Location:</span>
+                        <span class="detail-value">{{ alert.location }}</span>
+                    </div>
+                    {% if alert.latitude and alert.longitude %}
+                    <div class="detail-row">
+                        <span class="detail-label">Coordinates:</span>
+                        <span class="detail-value">{{ alert.latitude }}, {{ alert.longitude }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="detail-row">
+                        <span class="detail-label">Description:</span>
+                        <span class="detail-value">{{ alert.description }}</span>
+                    </div>
+                    {% if alert.zone %}
+                    <div class="detail-row">
+                        <span class="detail-label">Zone:</span>
+                        <span class="detail-value">{{ alert.zone.zone_name }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Response Units -->
+            {% if responses %}
+            <div class="responses-section">
+                <h3>📡 Assigned Response Units</h3>
+                <div class="responses-grid">
+                    {% for response in responses %}
+                    <div class="response-card">
+                        <div class="response-header">
+                            <h4>{{ response.response_unit.unit_name }}</h4>
+                            <span class="response-status status-{{ response.status|lower }}">
+                                {{ response.get_status_display }}
+                            </span>
+                        </div>
+                        <div class="response-details">
+                            <p><strong>Type:</strong> {{ response.response_unit.get_unit_type_display }}</p>
+                            <p><strong>Location:</strong> {{ response.response_unit.current_location }}</p>
+                            {% if response.response_unit.contact_info %}
+                            <p><strong>Contact:</strong> {{ response.response_unit.contact_info }}</p>
+                            {% endif %}
+                            <p><strong>Assigned:</strong> {{ response.assigned_at|date:"H:i" }}</p>
+                            {% if response.arrived_at %}
+                            <p><strong>Arrived:</strong> {{ response.arrived_at|date:"H:i" }}</p>
+                            {% endif %}
+                            {% if response.notes %}
+                            <p><strong>Notes:</strong> {{ response.notes }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            <div class="no-responses">
+                <p>⏳ Waiting for response unit assignment...</p>
+                <p class="small-text">Emergency services are being notified. A unit will be assigned shortly.</p>
+            </div>
+            {% endif %}
+
+            <!-- Timeline -->
+            <div class="timeline-section">
+                <h3>📋 Alert Timeline</h3>
+                <div class="timeline">
+                    <div class="timeline-item completed">
+                        <div class="timeline-marker">✓</div>
+                        <div class="timeline-content">
+                            <h4>Alert Created</h4>
+                            <p>{{ alert.created_at|date:"F d, Y - H:i:s" }}</p>
+                        </div>
+                    </div>
+                    
+                    {% if alert.status == 'DISPATCHED' or alert.status == 'IN_PROGRESS' or alert.status == 'RESOLVED' %}
+                    <div class="timeline-item completed">
+                        <div class="timeline-marker">✓</div>
+                        <div class="timeline-content">
+                            <h4>Dispatched to Response Services</h4>
+                            <p>Alert forwarded to emergency responders</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if responses %}
+                    <div class="timeline-item completed">
+                        <div class="timeline-marker">✓</div>
+                        <div class="timeline-content">
+                            <h4>Response Unit(s) Assigned</h4>
+                            <p>{{ responses.count }} unit(s) dispatched</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if alert.status == 'IN_PROGRESS' or alert.status == 'RESOLVED' %}
+                    <div class="timeline-item completed">
+                        <div class="timeline-marker">✓</div>
+                        <div class="timeline-content">
+                            <h4>Response In Progress</h4>
+                            <p>Emergency responders are handling the situation</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if alert.status == 'RESOLVED' %}
+                    <div class="timeline-item completed">
+                        <div class="timeline-marker">✓</div>
+                        <div class="timeline-content">
+                            <h4>Alert Resolved</h4>
+                            <p>Emergency has been handled</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="action-buttons">
+                <a href="{% url 'home' %}" class="btn btn-primary">Return Home</a>
+                {% if user.is_authenticated and user == alert.user %}
+                <a href="{% url 'dashboard' %}?tab=alerts" class="btn btn-secondary">View My Alerts</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .status-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .status-header h1 {
+        color: var(--text-primary);
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+        color: var(--text-secondary);
+        font-size: 1.125rem;
+    }
+
+    .alert-info-card {
+        background: var(--card-bg);
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .alert-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .alert-header h2 {
+        color: var(--text-primary);
+        margin: 0;
+    }
+
+    .alert-timestamp {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status-new {
+        background: rgba(33, 150, 243, 0.2);
+        color: #2196f3;
+        border: 1px solid #2196f3;
+    }
+
+    .status-dispatched {
+        background: rgba(255, 152, 0, 0.2);
+        color: #ff9800;
+        border: 1px solid #ff9800;
+    }
+
+    .status-in_progress {
+        background: rgba(156, 39, 176, 0.2);
+        color: #9c27b0;
+        border: 1px solid #9c27b0;
+    }
+
+    .status-resolved {
+        background: rgba(76, 175, 80, 0.2);
+        color: #4caf50;
+        border: 1px solid #4caf50;
+    }
+
+    .status-assigned {
+        background: rgba(33, 150, 243, 0.2);
+        color: #2196f3;
+        border: 1px solid #2196f3;
+    }
+
+    .status-en_route {
+        background: rgba(255, 152, 0, 0.2);
+        color: #ff9800;
+        border: 1px solid #ff9800;
+    }
+
+    .status-on_site {
+        background: rgba(156, 39, 176, 0.2);
+        color: #9c27b0;
+        border: 1px solid #9c27b0;
+    }
+
+    .status-completed {
+        background: rgba(76, 175, 80, 0.2);
+        color: #4caf50;
+        border: 1px solid #4caf50;
+    }
+
+    .alert-details {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .detail-row {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .detail-label {
+        color: var(--text-secondary);
+        font-weight: 600;
+        min-width: 150px;
+    }
+
+    .detail-value {
+        color: var(--text-primary);
+        flex: 1;
+    }
+
+    .emergency-police {
+        color: #2196f3;
+        font-weight: 600;
+    }
+
+    .emergency-fire {
+        color: #f44336;
+        font-weight: 600;
+    }
+
+    .emergency-medical {
+        color: #4caf50;
+        font-weight: 600;
+    }
+
+    .responses-section {
+        margin: 2rem 0;
+    }
+
+    .responses-section h3 {
+        color: var(--text-primary);
+        margin-bottom: 1.5rem;
+    }
+
+    .responses-grid {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .response-card {
+        background: var(--card-bg);
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .response-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .response-header h4 {
+        color: var(--text-primary);
+        margin: 0;
+    }
+
+    .response-details p {
+        color: var(--text-secondary);
+        margin: 0.5rem 0;
+    }
+
+    .response-details strong {
+        color: var(--text-primary);
+    }
+
+    .response-status {
+        font-size: 0.75rem;
+    }
+
+    .no-responses {
+        background: var(--card-bg);
+        border-radius: 12px;
+        padding: 3rem 2rem;
+        text-align: center;
+        border: 2px dashed rgba(255, 255, 255, 0.1);
+        margin: 2rem 0;
+    }
+
+    .no-responses p {
+        color: var(--text-secondary);
+        font-size: 1.125rem;
+        margin: 0.5rem 0;
+    }
+
+    .small-text {
+        font-size: 0.875rem !important;
+    }
+
+    .timeline-section {
+        margin: 2rem 0;
+    }
+
+    .timeline-section h3 {
+        color: var(--text-primary);
+        margin-bottom: 1.5rem;
+    }
+
+    .timeline {
+        position: relative;
+        padding-left: 2rem;
+    }
+
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 0.5rem;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .timeline-item {
+        position: relative;
+        margin-bottom: 2rem;
+        padding-left: 2rem;
+    }
+
+    .timeline-marker {
+        position: absolute;
+        left: -1.5rem;
+        top: 0;
+        width: 2rem;
+        height: 2rem;
+        background: var(--card-bg);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+    }
+
+    .timeline-item.completed .timeline-marker {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: white;
+    }
+
+    .timeline-content h4 {
+        color: var(--text-primary);
+        margin: 0 0 0.5rem 0;
+        font-size: 1rem;
+    }
+
+    .timeline-content p {
+        color: var(--text-secondary);
+        margin: 0;
+        font-size: 0.875rem;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin: 3rem 0 1rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-secondary {
+        background: var(--card-bg);
+        color: var(--text-primary);
+        border: 2px solid var(--primary);
+    }
+
+    .btn-secondary:hover {
+        background: var(--primary);
+        color: white;
+    }
+
+    @media (max-width: 768px) {
+        .alert-header {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .detail-row {
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .detail-label {
+            min-width: auto;
+        }
+    }
+</style>
+{% endblock %}

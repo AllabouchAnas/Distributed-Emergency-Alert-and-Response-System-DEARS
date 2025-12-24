@@ -1,0 +1,41 @@
+# ============================
+# PYTHON
+# ============================
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+
+.history
+
+
+# Virtual environments
+env/
+venv/
+ENV/
+.venv/
+.env/
+*.env
+*.env.local
+*.env.dev
+*.env.prod
+
+# ============================
+# EDITOR / IDE
+# ============================
+# VS Code
+.vscode/
+# ============================
+# DJANGO
+# ============================
+# SQLite databases (no longer used - migrated to PostgreSQL)
+db.sqlite3
+db.sqlite3-journal
+
+# Django static and media files
+staticfiles/
+media/
+
+# Django logs
+*.log

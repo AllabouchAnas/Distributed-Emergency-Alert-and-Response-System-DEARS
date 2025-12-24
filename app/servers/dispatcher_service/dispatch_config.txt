@@ -1,0 +1,1 @@
+﻿This is the central routing and message broker service. Its primary function is to receive alerts from the client and route them to the appropriate response services (fire, medical, police).

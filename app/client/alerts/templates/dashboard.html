@@ -1,0 +1,394 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - DEARS{% endblock %}
+
+{% block content %}
+<section style="padding: 3rem 0;">
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <div>
+                <h1>Admin Dashboard</h1>
+                <p class="text-muted">Monitor and manage alerts, reports, and response units</p>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <a href="?tab=reports" class="tab-btn {% if current_tab == 'reports' %}active{% endif %}">📋 Emergency
+                Reports</a>
+            <a href="?tab=alerts" class="tab-btn {% if current_tab == 'alerts' %}active{% endif %}">🚨 Alerts</a>
+            <a href="?tab=units" class="tab-btn {% if current_tab == 'units' %}active{% endif %}">🚑 Response Units</a>
+            <a href="?tab=responses" class="tab-btn {% if current_tab == 'responses' %}active{% endif %}">📍 Active
+                Responses</a>
+        </div>
+
+        <!-- Emergency Reports Tab -->
+        {% if current_tab == 'reports' %}
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">Active</span>
+                    <span class="stat-icon">📊</span>
+                </div>
+                <div class="stat-value">{{ reports_stats.active }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">In Progress</span>
+                    <span class="stat-icon">🚨</span>
+                </div>
+                <div class="stat-value">{{ reports_stats.in_progress }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">Resolved</span>
+                    <span class="stat-icon">✅</span>
+                </div>
+                <div class="stat-value">{{ reports_stats.resolved }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">Total</span>
+                    <span class="stat-icon">📈</span>
+                </div>
+                <div class="stat-value">{{ reports_stats.total }}</div>
+            </div>
+        </div>
+
+        <div class="card" style="padding: 1.5rem; margin: 1rem 0;">
+            <div class="filters">
+                <a href="?tab=reports&status=all"
+                    class="filter-btn {% if current_filter == 'all' %}active{% endif %}">All</a>
+                <a href="?tab=reports&status=NEW"
+                    class="filter-btn {% if current_filter == 'NEW' %}active{% endif %}">New</a>
+                <a href="?tab=reports&status=IN_PROGRESS"
+                    class="filter-btn {% if current_filter == 'IN_PROGRESS' %}active{% endif %}">In Progress</a>
+                <a href="?tab=reports&status=RESOLVED"
+                    class="filter-btn {% if current_filter == 'RESOLVED' %}active{% endif %}">Resolved</a>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <h3 style="padding: 1.5rem; margin: 0; border-bottom: 1px solid var(--color-accent-subtle);">Emergency
+                Reports</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Type</th>
+                        <th>Reporter</th>
+                        <th>Location</th>
+                        <th>Status</th>
+                        <th>Reported</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for report in reports %}
+                    {% include 'partials/report_row.html' %}
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted" style="padding: 2rem;">No reports found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        <!-- Alerts Tab -->
+        {% if current_tab == 'alerts' %}
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">New</span>
+                    <span class="stat-icon">🆕</span>
+                </div>
+                <div class="stat-value">{{ alerts_stats.new }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">Dispatched</span>
+                    <span class="stat-icon">📤</span>
+                </div>
+                <div class="stat-value">{{ alerts_stats.dispatched }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">In Progress</span>
+                    <span class="stat-icon">⚡</span>
+                </div>
+                <div class="stat-value">{{ alerts_stats.in_progress }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">Total</span>
+                    <span class="stat-icon">📊</span>
+                </div>
+                <div class="stat-value">{{ alerts_stats.total }}</div>
+            </div>
+        </div>
+
+        <div class="table-container" style="margin-top: 2rem;">
+            <h3 style="padding: 1.5rem; margin: 0; border-bottom: 1px solid var(--color-accent-subtle);">Alerts</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Type</th>
+                        <th>User</th>
+                        <th>Location</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for alert in alerts %}
+                    <tr>
+                        <td>#{{ alert.id }}</td>
+                        <td><span class="badge badge-{{ alert.emergency_type|lower }}">{{
+                                alert.get_emergency_type_display }}</span></td>
+                        <td>{{ alert.user.get_full_name|default:alert.user.username }}</td>
+                        <td>{{ alert.location|truncatewords:5 }}</td>
+                        <td><span class="badge badge-status-{{ alert.status|lower }}">{{ alert.get_status_display
+                                }}</span></td>
+                        <td>{{ alert.created_at|date:"M d, H:i" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted" style="padding: 2rem;">No alerts found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        <!-- Response Units Tab -->
+        {% if current_tab == 'units' %}
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">Available</span>
+                    <span class="stat-icon">✅</span>
+                </div>
+                <div class="stat-value">{{ units_stats.available }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">En Route</span>
+                    <span class="stat-icon">🚗</span>
+                </div>
+                <div class="stat-value">{{ units_stats.en_route }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">On Site</span>
+                    <span class="stat-icon">📍</span>
+                </div>
+                <div class="stat-value">{{ units_stats.on_site }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">Total Units</span>
+                    <span class="stat-icon">🚨</span>
+                </div>
+                <div class="stat-value">{{ units_stats.total }}</div>
+            </div>
+        </div>
+
+        <div class="card" style="padding: 1.5rem; margin: 1rem 0;">
+            <div class="filters">
+                <a href="?tab=units&unit_type=all"
+                    class="filter-btn {% if unit_type_filter == 'all' %}active{% endif %}">All Units</a>
+                <a href="?tab=units&unit_type=POLICE"
+                    class="filter-btn {% if unit_type_filter == 'POLICE' %}active{% endif %}">🚔 Police ({{
+                    units_stats.police }})</a>
+                <a href="?tab=units&unit_type=FIRE"
+                    class="filter-btn {% if unit_type_filter == 'FIRE' %}active{% endif %}">🚒 Fire ({{ units_stats.fire
+                    }})</a>
+                <a href="?tab=units&unit_type=MEDICAL"
+                    class="filter-btn {% if unit_type_filter == 'MEDICAL' %}active{% endif %}">🚑 Medical ({{
+                    units_stats.medical }})</a>
+            </div>
+        </div>
+
+        <div class="table-container" style="margin-top: 2rem;">
+            <h3 style="padding: 1.5rem; margin: 0; border-bottom: 1px solid var(--color-accent-subtle);">Response Units
+            </h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Unit Name</th>
+                        <th>Type</th>
+                        <th>Location</th>
+                        <th>Status</th>
+                        <th>Contact</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for unit in units %}
+                    <tr>
+                        <td>{{ unit.id }}</td>
+                        <td>{{ unit.unit_name }}</td>
+                        <td><span class="badge badge-{{ unit.unit_type|lower }}">{{ unit.get_unit_type_display }}</span>
+                        </td>
+                        <td>{{ unit.current_location }}</td>
+                        <td><span class="badge badge-status-{{ unit.status|lower }}">{{ unit.get_status_display
+                                }}</span></td>
+                        <td>{{ unit.contact_info|default:"N/A" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted" style="padding: 2rem;">No units found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        <!-- Active Responses Tab -->
+        {% if current_tab == 'responses' %}
+        <div class="table-container">
+            <h3 style="padding: 1.5rem; margin: 0; border-bottom: 1px solid var(--color-accent-subtle);">Active
+                Responses</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Response ID</th>
+                        <th>Alert</th>
+                        <th>Unit</th>
+                        <th>Status</th>
+                        <th>Assigned</th>
+                        <th>Arrived</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for response in active_responses %}
+                    <tr>
+                        <td>#{{ response.id }}</td>
+                        <td>
+                            <strong>Alert #{{ response.alert.id }}</strong><br>
+                            <small>{{ response.alert.get_emergency_type_display }} - {{
+                                response.alert.location|truncatewords:3 }}</small>
+                        </td>
+                        <td>{{ response.response_unit.unit_name }}</td>
+                        <td><span class="badge badge-status-{{ response.status|lower }}">{{ response.get_status_display
+                                }}</span></td>
+                        <td>{{ response.assigned_at|date:"M d, H:i" }}</td>
+                        <td>{{ response.arrived_at|date:"M d, H:i"|default:"—" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted" style="padding: 2rem;">No active responses.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+    </div>
+</section>
+
+<style>
+    .tabs {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+        border-bottom: 2px solid var(--color-accent-subtle);
+        flex-wrap: wrap;
+    }
+
+    .tab-btn {
+        padding: 1rem 1.5rem;
+        background: transparent;
+        border: none;
+        color: var(--text-secondary);
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border-bottom: 3px solid transparent;
+    }
+
+    .tab-btn:hover {
+        color: var(--text-primary);
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .tab-btn.active {
+        color: var(--primary);
+        border-bottom-color: var(--primary);
+    }
+
+    .badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    .badge-police {
+        background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+        color: white;
+    }
+
+    .badge-fire {
+        background: linear-gradient(135deg, #991b1b, #ef4444);
+        color: white;
+    }
+
+    .badge-medical {
+        background: linear-gradient(135deg, #065f46, #10b981);
+        color: white;
+    }
+
+    .badge-status-available {
+        background: var(--success);
+        color: white;
+    }
+
+    .badge-status-en_route {
+        background: var(--warning);
+        color: white;
+    }
+
+    .badge-status-on_site {
+        background: var(--info);
+        color: white;
+    }
+
+    .badge-status-new {
+        background: var(--info);
+        color: white;
+    }
+
+    .badge-status-dispatched {
+        background: var(--warning);
+        color: white;
+    }
+
+    .badge-status-in_progress {
+        background: var(--warning);
+        color: white;
+    }
+
+    .badge-status-resolved {
+        background: var(--success);
+        color: white;
+    }
+
+    .badge-status-assigned {
+        background: var(--info);
+        color: white;
+    }
+
+    .badge-status-completed {
+        background: var(--success);
+        color: white;
+    }
+</style>
+{% endblock %}
