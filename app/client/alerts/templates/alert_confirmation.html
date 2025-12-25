@@ -1,0 +1,411 @@
+{% extends 'base.html' %}
+
+{% block title %}Alert Submitted - DEARS{% endblock %}
+
+{% block content %}
+<section style="padding: 3rem 0;">
+    <div class="container-sm">
+        <div class="status-page-card">
+            <div class="status-header">
+                <div class="status-icon-large">
+                    {% if alert.emergency_type == 'POLICE' %}🚓
+                    {% elif alert.emergency_type == 'FIRE' %}🚒
+                    {% elif alert.emergency_type == 'MEDICAL' %}🚑
+                    {% endif %}
+                </div>
+                <h1 style="margin-bottom: 0.5rem;">Alert Submitted Successfully!</h1>
+                <p class="text-muted">Real-time tracking for your emergency alert #{{ alert_id }}</p>
+            </div>
+
+            <!-- Status Info Grid -->
+            <div class="status-info-grid">
+                <div class="status-info-item">
+                    <label class="status-label">Current Status</label>
+                    <span class="status-badge {{ alert.get_status_badge_class }}">
+                        {{ alert.get_status_display }}
+                    </span>
+                </div>
+
+                <div class="status-info-item">
+                    <label class="status-label">Location</label>
+                    <div class="status-value">
+                        {% if alert.latitude and alert.longitude %}
+                        {{ alert.latitude|floatformat:6 }}, {{ alert.longitude|floatformat:6 }}
+                        {% else %}
+                        {{ alert.location }}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="status-info-item">
+                    <label class="status-label">Reported At</label>
+                    <div class="status-value">{{ alert.created_at|date:"F d, Y - H:i" }}</div>
+                </div>
+            </div>
+
+            <!-- Status Message -->
+            {% if alert.status == 'NEW' or alert.status == 'DISPATCHED' %}
+            <div class="status-message status-message-warning">
+                <div class="status-message-icon">⏳</div>
+                <div>
+                    <div class="status-message-title">Alert Dispatched</div>
+                    <div class="status-message-text">Your emergency alert has been dispatched to response services.
+                        Units are being assigned.</div>
+                </div>
+            </div>
+            {% elif alert.status == 'IN_PROGRESS' %}
+            <div class="status-message status-message-info">
+                <div class="status-message-icon">🚨</div>
+                <div>
+                    <div class="status-message-title">Response In Progress</div>
+                    <div class="status-message-text">Emergency responders are handling your situation. Please stay safe.
+                    </div>
+                </div>
+            </div>
+            {% elif alert.status == 'RESOLVED' %}
+            <div class="status-message status-message-success">
+                <div class="status-message-icon">✅</div>
+                <div>
+                    <div class="status-message-title">Emergency Resolved</div>
+                    <div class="status-message-text">This emergency has been successfully resolved. Thank you for using
+                        DEARS.</div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Response Units -->
+            {% if responses %}
+            <div class="responses-section">
+                <h3>📡 Assigned Response Units</h3>
+                <div class="responses-list">
+                    {% for response in responses %}
+                    <div class="response-card">
+                        <div class="response-header">
+                            <div>
+                                <h4>{{ response.response_unit.unit_name }}</h4>
+                                <p class="response-type">{{ response.response_unit.get_unit_type_display }}</p>
+                            </div>
+                            <span class="status-badge status-{{ response.status|lower }}">
+                                {{ response.get_status_display }}
+                            </span>
+                        </div>
+                        <div class="response-details">
+                            <p><strong>Location:</strong> {{ response.response_unit.current_location }}</p>
+                            <p><strong>Assigned:</strong> {{ response.assigned_at|date:"H:i" }}</p>
+                            {% if response.arrived_at %}
+                            <p><strong>Arrived:</strong> {{ response.arrived_at|date:"H:i" }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Safety Instructions -->
+            {% if alert %}
+            <div class="safety-instructions-box">
+                <h3 class="safety-title">
+                    <span class="safety-icon">⚠️</span>
+                    Important: What To Do While Waiting
+                </h3>
+
+                <div class="safety-content">
+                    <div class="safety-section">
+                        <h4>🏠 Stay Safe</h4>
+                        <ul>
+                            <li>If safe, remain in your current location</li>
+                            <li>Move to a secure area away from immediate danger</li>
+                            <li>Do NOT attempt to confront dangerous situations yourself</li>
+                        </ul>
+                    </div>
+
+                    <div class="safety-section">
+                        <h4>📱 Keep Communication Open</h4>
+                        <ul>
+                            <li>Keep your phone charged and accessible</li>
+                            <li>Answer calls from unknown numbers (could be emergency services)</li>
+                            <li>Do NOT hang up if you called 911</li>
+                        </ul>
+                    </div>
+
+                    {% if alert.emergency_type == 'MEDICAL' %}
+                    <div class="safety-section emergency-specific medical">
+                        <h4>🚑 Medical Emergency - Do This Now:</h4>
+                        <ul>
+                            <li><strong>Do NOT move the patient</strong> unless absolutely necessary</li>
+                            <li>If trained, provide first aid or CPR if needed</li>
+                            <li>Keep the patient comfortable and calm</li>
+                            <li>Unlock doors for quick paramedic access</li>
+                        </ul>
+                    </div>
+                    {% elif alert.emergency_type == 'FIRE' %}
+                    <div class="safety-section emergency-specific fire">
+                        <h4>🔥 Fire Emergency - Critical Actions:</h4>
+                        <ul>
+                            <li><strong>EVACUATE IMMEDIATELY</strong> if you see fire or smoke</li>
+                            <li>Close doors behind you to contain the fire</li>
+                            <li>Do NOT use elevators - use stairs only</li>
+                            <li><strong>Do NOT re-enter</strong> the building for any reason</li>
+                        </ul>
+                    </div>
+                    {% elif alert.emergency_type == 'POLICE' %}
+                    <div class="safety-section emergency-specific police">
+                        <h4>🚔 Police Emergency - Safety First:</h4>
+                        <ul>
+                            <li>Find a safe, well-lit area if possible</li>
+                            <li>Lock yourself in a room if threatened</li>
+                            <li>Do NOT disturb any evidence at the scene</li>
+                            <li>Comply immediately with police instructions</li>
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="action-buttons" style="margin-top: 2rem;">
+                <button onclick="window.location.reload();" class="btn btn-primary">🔄 Refresh Status</button>
+                <a href="{% url 'my_alerts' %}" class="btn btn-secondary">My Alerts History</a>
+                <a href="{% url 'home' %}" class="btn btn-secondary">Return Home</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .status-page-card {
+        background: var(--card-bg);
+        border-radius: 24px;
+        padding: 3rem;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        margin-bottom: 2rem;
+    }
+
+    .status-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .status-icon-large {
+        font-size: 5rem;
+        margin-bottom: 1.5rem;
+        text-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.05);
+        }
+
+        100% {
+            transform: scale(1);
+        }
+    }
+
+    .status-info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 2rem;
+        margin-bottom: 3rem;
+        background: rgba(255, 255, 255, 0.03);
+        padding: 2rem;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .status-label {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .status-value {
+        color: var(--text-primary);
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .status-new {
+        background: rgba(33, 150, 243, 0.2);
+        color: #2196f3;
+        border: 1px solid #2196f3;
+    }
+
+    .status-dispatched {
+        background: rgba(255, 152, 0, 0.2);
+        color: #ff9800;
+        border: 1px solid #ff9800;
+    }
+
+    .status-in_progress {
+        background: rgba(156, 39, 176, 0.2);
+        color: #9c27b0;
+        border: 1px solid #9c27b0;
+    }
+
+    .status-resolved {
+        background: rgba(76, 175, 80, 0.2);
+        color: #4caf50;
+        border: 1px solid #4caf50;
+    }
+
+    .status-message {
+        display: flex;
+        gap: 1.5rem;
+        padding: 1.5rem;
+        border-radius: 16px;
+        margin-bottom: 3rem;
+        align-items: flex-start;
+    }
+
+    .status-message-warning {
+        background: rgba(255, 152, 0, 0.1);
+        border: 1px solid rgba(255, 152, 0, 0.2);
+    }
+
+    .status-message-info {
+        background: rgba(33, 150, 243, 0.1);
+        border: 1px solid rgba(33, 150, 243, 0.2);
+    }
+
+    .status-message-success {
+        background: rgba(76, 175, 80, 0.1);
+        border: 1px solid rgba(76, 175, 80, 0.2);
+    }
+
+    .status-message-icon {
+        font-size: 2rem;
+    }
+
+    .status-message-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: var(--text-primary);
+    }
+
+    .status-message-text {
+        color: var(--text-secondary);
+        line-height: 1.6;
+    }
+
+    .responses-section {
+        margin-top: 3rem;
+        padding-top: 3rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .responses-list {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .response-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        padding: 1.5rem;
+    }
+
+    .response-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+    }
+
+    .response-header h4 {
+        margin: 0;
+        color: var(--text-primary);
+    }
+
+    .response-type {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+    }
+
+    .response-details p {
+        margin: 0.25rem 0;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+
+    .response-details strong {
+        color: var(--text-primary);
+    }
+
+    .safety-instructions-box {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        padding: 2rem;
+        margin-top: 3rem;
+    }
+
+    .safety-title {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        color: var(--text-primary);
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .safety-content h4 {
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+        font-size: 1.1rem;
+    }
+
+    .safety-content ul {
+        color: var(--text-secondary);
+        margin-bottom: 2rem;
+    }
+
+    .safety-content li {
+        margin-bottom: 0.5rem;
+    }
+
+    .btn-secondary {
+        background: transparent;
+        border: 2px solid var(--primary);
+        color: var(--text-primary);
+    }
+
+    .btn-secondary:hover {
+        background: var(--primary);
+        color: white;
+    }
+
+    @media (max-width: 768px) {
+        .status-page-card {
+            padding: 1.5rem;
+        }
+
+        .status-info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}

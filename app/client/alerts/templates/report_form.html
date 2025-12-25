@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} - DEARS{% endblock %}
+{% block content %}
+<section class="form-section">
+    <div class="container container-sm">
+        <div class="glass-card form-card">
+            <div class="form-header">
+                <a href="{% url 'dashboard' %}" class="back-link">← Back to Dashboard</a>
+                <h1 class="gradient-text">{{ title }}</h1>
+            </div>
+            <form method="post" class="premium-form">
+                {% csrf_token %}
+                <div class="form-grid">
+                    {% for field in form %}
+                    <div class="form-group {% if field.name == 'description' %}full-width{% endif %}">
+                        <label class="premium-label">{{ field.label }}</label>
+                        <div class="input-wrapper">{{ field }}</div>
+                        {% if field.errors %}<div class="error-text">{{ field.errors }}</div>{% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary-premium">{{ button_text }}</button>
+                    <a href="{% url 'dashboard' %}" class="btn btn-outline-premium">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+<style>
+    :root {
+        --glass-bg: rgba(255, 255, 255, 0.03);
+        --glass-border: rgba(255, 255, 255, 0.08);
+    }
+
+    .form-section {
+        padding: 4rem 0;
+        background: #0a0a0a;
+    }
+
+    .glass-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(15px);
+        border: 1px solid var(--glass-border);
+        border-radius: 28px;
+        padding: 3rem;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .form-header {
+        margin-bottom: 2rem;
+    }
+
+    .back-link {
+        color: #3b82f6;
+        text-decoration: none;
+        font-weight: 600;
+        display: block;
+        margin-bottom: 1rem;
+    }
+
+    .gradient-text {
+        background: linear-gradient(135deg, #fff, #94a3b8);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-size: 2rem;
+        font-weight: 800;
+    }
+
+    .premium-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .full-width {
+        grid-column: span 2;
+    }
+
+    .premium-label {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: #94a3b8;
+        text-transform: uppercase;
+        margin-bottom: 0.5rem;
+    }
+
+    .input-wrapper input,
+    .input-wrapper select,
+    .input-wrapper textarea {
+        width: 100%;
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid var(--glass-border);
+        border-radius: 10px;
+        padding: 0.8rem 1rem;
+        color: #fff;
+    }
+
+    .error-text {
+        color: #ef4444;
+        font-size: 0.8rem;
+        margin-top: 0.4rem;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .btn-primary-premium {
+        background: #3b82f6;
+        color: #fff;
+        border: none;
+        padding: 1rem 2rem;
+        border-radius: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        flex: 2;
+    }
+
+    .btn-outline-premium {
+        background: transparent;
+        border: 1px solid var(--glass-border);
+        color: #94a3b8;
+        padding: 1rem 2rem;
+        border-radius: 12px;
+        text-decoration: none;
+        text-align: center;
+        flex: 1;
+    }
+
+    @media (max-width: 600px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .full-width {
+            grid-column: span 1;
+        }
+    }
+</style>
+{% endblock %}

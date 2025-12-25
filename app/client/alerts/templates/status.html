@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+{% block title %}Emergency Status - DEARS{% endblock %}
+{% block content %}
+<section class="status-section">
+    <div class="container container-sm">
+        {% if report or alert %}
+        <div class="glass-card status-card">
+            <div class="status-header">
+                <div class="status-icon-glow">
+                    {% if report %}
+                    {% if report.emergency_type == 'POLICE' %}🚓{% elif report.emergency_type == 'FIRE' %}🔥{% elif
+                    report.emergency_type == 'MEDICAL' %}❤️{% else %}⚠{% endif %}
+                    {% else %}
+                    {% if alert.emergency_type == 'POLICE' %}🚓{% elif alert.emergency_type == 'FIRE' %}🔥{% elif
+                    alert.emergency_type == 'MEDICAL' %}❤️{% else %}⚠{% endif %}
+                    {% endif %}
+                </div>
+                <h1 class="gradient-text">Emergency Alert Status</h1>
+                <p class="subtitle text-muted">Tracking emergency #{{ report.id|default:alert.id|slice:":8" }}</p>
+            </div>
+            <div class="status-grid">
+                <div class="status-item">
+                    <span class="label">ID</span>
+                    <span class="value monospaced">{{ report.id|default:alert.id }}</span>
+                </div>
+                <div class="status-item">
+                    <span class="label">Emergency Type</span>
+                    <span class="value type-badge">{% if report %}{{ report.get_emergency_type_display }}{% else %}{{
+                        alert.get_emergency_type_display }}{% endif %}</span>
+                </div>
+                <div class="status-item">
+                    <span class="label">Current Status</span>
+                    <span class="status-badge status-{{ report.status|default:alert.status|lower }}">{% if report %}{{
+                        report.get_status_display }}{% else %}{{ alert.get_status_display }}{% endif %}</span>
+                </div>
+                <div class="status-item">
+                    <span class="label">Location</span>
+                    <span class="value">{{ report.location|default:alert.location }}</span>
+                </div>
+            </div>
+            {% if report.description or alert.description %}
+            <div class="description-box">
+                <span class="label">Incident Description</span>
+                <p class="description-text">{{ report.description|default:alert.description }}</p>
+            </div>
+            {% endif %}
+            <div class="action-footer">
+                <a href="{% url 'dashboard' %}" class="btn btn-glass">Back to Dashboard</a>
+            </div>
+        </div>
+        {% else %}
+        <div class="glass-card error-card text-center">
+            <div class="error-icon">❌</div>
+            <h2>Report Not Found</h2>
+            <p class="text-muted">The requested emergency report could not be located.</p>
+            <a href="{% url 'dashboard' %}" class="btn btn-primary mt-4">Return Dashboard</a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+<style>
+    :root {
+        --glass-bg: rgba(255, 255, 255, 0.03);
+        --glass-border: rgba(255, 255, 255, 0.08);
+        --accent-glow: rgba(59, 130, 246, 0.2);
+    }
+
+    .status-section {
+        padding: 4rem 0;
+        min-height: 80vh;
+        background: #0a0a0a;
+    }
+
+    .glass-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        border-radius: 24px;
+        padding: 3rem;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+
+    .status-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .status-icon-glow {
+        font-size: 3rem;
+        width: 80px;
+        height: 80px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        box-shadow: 0 0 30px var(--accent-glow);
+    }
+
+    .gradient-text {
+        background: linear-gradient(to right, #fff, #94a3b8);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 800;
+        font-size: 2rem;
+    }
+
+    .status-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .status-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .label {
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: #64748b;
+        text-transform: uppercase;
+    }
+
+    .value {
+        font-size: 1rem;
+        color: #f1f5f9;
+    }
+
+    .monospaced {
+        font-family: monospace;
+        color: #3b82f6;
+    }
+
+    .status-badge {
+        padding: 0.4rem 0.8rem;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        display: inline-block;
+    }
+
+    .status-new {
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+    }
+
+    .status-in_progress {
+        background: rgba(245, 158, 11, 0.1);
+        color: #f59e0b;
+    }
+
+    .status-resolved {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+    }
+
+    .description-box {
+        background: rgba(255, 255, 255, 0.02);
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+    }
+
+    .btn-glass {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--glass-border);
+        color: #fff;
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .btn-glass:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .action-footer {
+        text-align: center;
+        border-top: 1px solid var(--glass-border);
+        padding-top: 2rem;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,109 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responder Dashboard - DEARS</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/responder.css' %}">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="{% url 'home' %}" class="brand">🚨 DEARS</a>
+            <div class="nav-links">
+                <span class="nav-user">{{ user.get_full_name|default:user.username }}</span>
+                {% if unit %}
+                <span class="unit-badge unit-{{ unit.unit_type|lower }}">{{ unit.unit_name }}</span>
+                {% endif %}
+                <a href="{% url 'logout' %}" class="btn-secondary">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="responder-main">
+        {% if error_message %}
+        <div class="error-container">
+            <div class="error-card">
+                <h2>⚠️ No Assignment</h2>
+                <p>{{ error_message }}</p>
+                <a href="{% url 'home' %}" class="btn-primary">Go Home</a>
+            </div>
+        </div>
+        {% else %}
+        <!-- Unit Status Header -->
+        <div class="status-header">
+            <div class="unit-info-card">
+                <div class="unit-icon">
+                    {% if unit.unit_type == 'POLICE' %}🚔
+                    {% elif unit.unit_type == 'FIRE' %}🚒
+                    {% elif unit.unit_type == 'MEDICAL' %}🚑
+                    {% endif %}
+                </div>
+                <div class="unit-details">
+                    <h1>{{ unit.unit_name }}</h1>
+                    <p class="unit-type">{{ unit.get_unit_type_display }}</p>
+                    <p class="unit-location">📍 {{ unit.current_location }}</p>
+                </div>
+                <div class="unit-status status-{{ unit.status|lower }}">
+                    <span class="status-dot"></span>
+                    {{ unit.get_status_display}}
+                </div>
+            </div>
+        </div>
+
+        <!-- Mission Container with Auto-Refresh -->
+        <div id="mission-container" hx-get="{% url 'responder_dashboard' %}" hx-trigger="every 5s"
+            hx-select="#mission-content" hx-swap="innerHTML">
+            <div id="mission-content">
+                {% if current_mission %}
+                {% include 'partials/mission_card.html' %}
+                {% else %}
+                <div class="no-mission">
+                    <div class="no-mission-content">
+                        <span class="icon">✅</span>
+                        <h2>No Active Mission</h2>
+                        <p>Awaiting assignment from dispatch...</p>
+                        <div class="pulse-indicator"></div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Recent Missions -->
+        {% if recent_missions %}
+        <div class="recent-missions">
+            <h2>📋 Recent Missions</h2>
+            <div class="missions-grid">
+                {% for mission in recent_missions %}
+                <div class="mission-item">
+                    <div class="mission-header-small">
+                        <span class="mission-icon">
+                            {% if mission.alert.emergency_type == 'FIRE' %}🔥
+                            {% elif mission.alert.emergency_type == 'MEDICAL' %}🚑
+                            {% elif mission.alert.emergency_type == 'POLICE' %}🚔
+                            {% endif %}
+                        </span>
+                        <span class="mission-type">{{ mission.alert.get_emergency_type_display }}</span>
+                    </div>
+                    <p class="mission-location">{{ mission.alert.location|truncatewords:5 }}</p>
+                    <div class="mission-footer">
+                        <span class="mission-status status-{{ mission.status|lower }}">{{ mission.get_status_display
+                            }}</span>
+                        <span class="mission-time">{{ mission.completed_at|date:"M d, H:i" }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        {% endif %}
+    </main>
+</body>
+
+</html>

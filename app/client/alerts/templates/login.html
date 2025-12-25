@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - DEARS{% endblock %}
+
+{% block content %}
+<section style="padding: 4rem 0; min-height: 80vh; display: flex; align-items: center;">
+    <div class="container-sm">
+        <div class="card animate-scaleIn" style="max-width: 520px; margin: 0 auto;">
+            <!-- Header Section -->
+            <div class="text-center" style="margin-bottom: 2.5rem;">
+                <div class="card-icon" style="margin: 0 auto 1.5rem;">🔐</div>
+                <h2 style="margin-bottom: 0.5rem; font-size: 2rem;">Welcome Back</h2>
+                <p class="text-muted" style="font-size: 1rem;">Access the DEARS administration dashboard</p>
+            </div>
+
+            <!-- Login Form -->
+            <form method="post">
+                {% csrf_token %}
+
+                {% if form.errors %}
+                <div class="alert alert-error mb-3" style="margin-bottom: 1.5rem;">
+                    <strong>⚠ Authentication Failed</strong><br>
+                    Invalid credentials. Please verify your username and password.
+                </div>
+                {% endif %}
+
+                <div class="form-group">
+                    <label class="form-label" for="id_username">
+                        <span style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span>👤</span> Username
+                        </span>
+                    </label>
+                    <input type="text" name="username" id="id_username" class="form-input"
+                        placeholder="Enter your username" required autofocus>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="id_password">
+                        <span style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span>🔑</span> Password
+                        </span>
+                    </label>
+                    <input type="password" name="password" id="id_password" class="form-input"
+                        placeholder="Enter your password" required>
+                </div>
+
+                <div class="form-group" style="margin-top: 2rem;">
+                    <button type="submit" class="btn btn-primary btn-large btn-block">
+                        Sign In →
+                    </button>
+                </div>
+
+                <input type="hidden" name="next" value="{{ next }}">
+            </form>
+
+            <!-- Footer Links -->
+            <div class="text-center"
+                style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid rgba(6, 182, 212, 0.2);">
+                <p class="text-muted" style="font-size: 0.95rem;">
+                    <a href="{% url 'home' %}"
+                        style="color: var(--color-accent-primary); text-decoration: none; font-weight: 600; transition: var(--transition-base);">
+                        ← Return to Home
+                    </a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Quick Info -->
+        <div class="text-center" style="margin-top: 2rem;">
+            <p class="text-muted" style="font-size: 0.9rem;">
+                Quick Access: Admin (<strong style="color: var(--color-accent-primary);">admin:admin</strong>) | User
+                (<strong style="color: var(--color-accent-primary);">user:user</strong>)
+            </p>
+        </div>
+    </div>
+</section>
+{% endblock %}
