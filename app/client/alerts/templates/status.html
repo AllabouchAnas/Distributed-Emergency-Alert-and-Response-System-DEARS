@@ -264,11 +264,6 @@
                             placeholder="Enter ID (e.g. bed1d0b8...)" required>
                         <button type="submit" class="btn btn-primary">Check Status</button>
                     </div>
-                    {% if search_form.report_id.errors %}
-                    <div class="text-danger" style="margin-top: 0.5rem;">
-                        {{ search_form.report_id.errors }}
-                    </div>
-                    {% endif %}
                 </div>
             </form>
         </div>
@@ -276,8 +271,16 @@
 </section>
 
 <style>
+    :root {
+        --primary-color: #e53935;
+        --secondary-color: #1e88e5;
+        --dark-color: #263238;
+        --light-color: #f5f5f5;
+        --white: #ffffff;
+    }
+
     .status-page-card {
-        background: white;
+        background: var(--white);
         border-radius: 1rem;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         padding: 2.5rem;
@@ -331,6 +334,7 @@
         padding: 0.3rem 0.6rem;
         border-radius: 4px;
         font-size: 0.95rem;
+        word-break: break-all;
     }
 
     .status-badge {
@@ -392,23 +396,6 @@
         transform: translateY(-5px);
     }
 
-    .response-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 1rem;
-    }
-
-    .response-type {
-        font-size: 0.85rem;
-        color: #6c757d;
-    }
-
-    .response-details p {
-        margin-bottom: 0.5rem;
-        font-size: 0.95rem;
-    }
-
     .status-message {
         display: flex;
         gap: 1.5rem;
@@ -433,16 +420,6 @@
         border: 1px solid #c3e6cb;
     }
 
-    .status-message-icon {
-        font-size: 2rem;
-    }
-
-    .status-message-title {
-        font-weight: 700;
-        margin-bottom: 0.3rem;
-        font-size: 1.1rem;
-    }
-
     .safety-instructions-box {
         background: #fff5f5;
         border: 1px solid #fed7d7;
@@ -451,55 +428,24 @@
         margin-bottom: 2rem;
     }
 
-    .safety-title {
-        color: #c53030;
-        margin-bottom: 1.5rem;
-        display: flex;
-        align-items: center;
-        gap: 0.8rem;
-    }
-
-    .safety-content {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 2rem;
-    }
-
-    .safety-section h4 {
-        margin-bottom: 1rem;
-        color: #2d3748;
-    }
-
-    .safety-section ul {
-        padding-left: 1.2rem;
-    }
-
-    .safety-section li {
-        margin-bottom: 0.6rem;
-        color: #4a5568;
-    }
-
-    .emergency-specific {
-        background: white;
-        padding: 1.2rem;
-        border-radius: 0.6rem;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-        grid-column: 1 / -1;
-    }
-
     .eta-box {
-        grid-column: 1 / -1;
         text-align: center;
         background: #2d3748;
         color: white;
         padding: 1.2rem;
         border-radius: 0.6rem;
-        margin-top: 1rem;
+        margin-top: 1.5rem;
     }
 
     .input-with-button {
         display: flex;
         gap: 0.5rem;
+    }
+
+    .check-status-form .form-control {
+        border-radius: 0.5rem;
+        border: 2px solid #e2e8f0;
+        padding: 0.6rem 1rem;
     }
 
     @keyframes slideUp {
@@ -521,16 +467,6 @@
 
         to {
             opacity: 1;
-        }
-    }
-
-    @media (max-width: 600px) {
-        .status-info-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .safety-content {
-            grid-template-columns: 1fr;
         }
     }
 </style>
