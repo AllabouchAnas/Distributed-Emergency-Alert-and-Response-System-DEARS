@@ -24,6 +24,8 @@ def send_alert_to_dispatcher(alert_data):
             'emergency_type': alert_data.get('emergency_type'),
             'description': alert_data.get('description'),
             'location': alert_data.get('location'),
+            'latitude': alert_data.get('latitude'),
+            'longitude': alert_data.get('longitude'),
         }
         
         logger.info(f"Sending alert to dispatcher: {dispatcher_url}")
