@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Text
+from sqlalchemy import Column, Integer, String, DateTime, Text, Float
 from sqlalchemy.sql import func
 from .db import Base
 
@@ -10,6 +10,8 @@ class Alert(Base):
     timestamp = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     description = Column(Text, nullable=False)
     location = Column(String(255), nullable=False)
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
     status = Column(String(32), nullable=False, default="PENDING")
     emergency_type = Column(String(32), nullable=False)  
     assigned_unit = Column(Integer, nullable=True) 
@@ -22,6 +24,8 @@ class ResponseUnit(Base):
     unit_name = Column(String(120), nullable=False) 
     unit_type = Column(String(32), nullable=False) 
     current_location = Column(String(255), nullable=False)
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
     status = Column(String(32), nullable=False, default="AVAILABLE")
 
 

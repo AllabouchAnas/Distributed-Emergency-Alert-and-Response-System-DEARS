@@ -11,11 +11,11 @@ class MedicalService(rpyc.Service):
     def on_disconnect(self, conn):
         logger.info("Connection closed.")
 
-    def exposed_receive_alert(self, alert_id, description, location, emergency_type):
+    def exposed_receive_alert(self, alert_id, description, location, emergency_type, latitude=None, longitude=None):
         """
         RPC method called by Dispatcher.
         """
-        logger.info(f"Received alert: ID={alert_id}, Type={emergency_type}, Loc={location}")
+        logger.info(f"Received alert: ID={alert_id}, Type={emergency_type}, Loc={location}, Lat={latitude}, Lon={longitude}")
         
         db = SessionLocal()
         try:
@@ -25,7 +25,9 @@ class MedicalService(rpyc.Service):
                 description=description,
                 location=location,
                 emergency_type=emergency_type,
-                status="PENDING"
+                status="PENDING",
+                latitude=latitude,
+                longitude=longitude
             )
             db.add(new_alert)
             db.flush()  # Get the auto-generated alert_id
@@ -46,8 +48,31 @@ class MedicalService(rpyc.Service):
                 db.commit()
                 return "No available units"
 
-            # 3. Assign first available unit
-            assigned_unit = available_units[0]
+            # 3. Assign nearest available unit based on proximity
+            from .utils.distance import haversine_distance
+            
+            assigned_unit = None
+            min_distance = float('inf')
+            
+            # If alert has coordinates, find nearest unit
+            if latitude is not None and longitude is not None:
+                for unit in available_units:
+                    if unit.latitude is not None and unit.longitude is not None:
+                        distance = haversine_distance(latitude, longitude, unit.latitude, unit.longitude)
+                        logger.info(f"Unit {unit.unit_name} is {distance:.2f} km away")
+                        if distance < min_distance:
+                            min_distance = distance
+                            assigned_unit = unit
+                
+                if assigned_unit:
+                    logger.info(f"Selected nearest unit {assigned_unit.unit_name} at {min_distance:.2f} km away")
+                else:
+                    logger.warning("No units with coordinates found, using first available")
+                    assigned_unit = available_units[0]
+            else:
+                logger.warning("Alert has no coordinates, using first available unit")
+                assigned_unit = available_units[0]
+            
             assigned_unit.status = "EN_ROUTE"
             
             # Update alert with assignment
