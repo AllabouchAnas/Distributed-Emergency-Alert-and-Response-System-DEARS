@@ -8,6 +8,8 @@ class AlertCreate(BaseModel):
     description: str
     location: str 
     emergency_type: EmergencyType
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
     
     @field_validator('emergency_type', mode='before')
     @classmethod
