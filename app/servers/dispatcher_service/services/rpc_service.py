@@ -26,7 +26,9 @@ def forward_alert_to_response_service(alert_data: AlertCreate, alert_id: str) ->
                 alert_id,
                 alert_data.description,
                 alert_data.location,
-                alert_data.emergency_type.value
+                alert_data.emergency_type.value,
+                alert_data.latitude,
+                alert_data.longitude
             )
             
             conn.close()
