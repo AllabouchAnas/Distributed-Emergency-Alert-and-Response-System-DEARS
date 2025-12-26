@@ -11,7 +11,7 @@ class FireService(rpyc.Service):
     def on_disconnect(self, conn):
         logger.info("Connection closed.")
 
-    def exposed_receive_alert(self, alert_id, description, location, emergency_type, latitude=None, longitude=None):
+    def exposed_receive_alert(self, alert_id, user_id, description, location, emergency_type, latitude=None, longitude=None):
         """
         RPC method called by Dispatcher.
         """
@@ -20,7 +20,7 @@ class FireService(rpyc.Service):
         db = SessionLocal()
         try:
             new_alert = Alert(
-                user_id=1,  # Default user_id since dispatcher doesn't send it
+                user_id=user_id,
                 description=description,
                 location=location,
                 emergency_type=emergency_type,

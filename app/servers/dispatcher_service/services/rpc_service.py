@@ -24,6 +24,7 @@ def forward_alert_to_response_service(alert_data: AlertCreate, alert_id: str) ->
             # Assuming the remote service exposes a 'receive_alert' method
             response = conn.root.receive_alert(
                 alert_id,
+                alert_data.user_id,
                 alert_data.description,
                 alert_data.location,
                 alert_data.emergency_type.value,
