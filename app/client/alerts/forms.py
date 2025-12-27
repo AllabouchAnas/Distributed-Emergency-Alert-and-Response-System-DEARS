@@ -143,6 +143,6 @@ class ReportSearchForm(forms.Form):
         label='Report ID',
         widget=forms.TextInput(attrs={
             'class': 'form-input',
-            'placeholder': 'Enter report ID (e.g., a1b2c3d4-...)',
+            'placeholder': 'Enter report UUID (e.g., 550e8400-e29b-41d4-...)',
         })
     )
