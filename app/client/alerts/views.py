@@ -57,6 +57,12 @@ def my_alerts(request):
 
 
 @login_required
+def profile(request):
+    """User profile view showing role-specific information."""
+    return render(request, 'profile.html', {'user': request.user})
+
+
+@login_required
 def declare_emergency(request):
     """Emergency declaration form view - requires authentication."""
     if request.method == 'POST':

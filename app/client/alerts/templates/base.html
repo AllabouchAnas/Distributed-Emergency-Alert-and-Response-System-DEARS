@@ -30,8 +30,11 @@
                         {% elif user.profile.is_responder %}
                         <li><a href="{% url 'responder_dashboard' %}">My Dashboard</a></li>
                         {% endif %}
-                        <li style="color: #6b7280; padding: 0.5rem 1rem;">
-                            👤 {{ user.get_full_name|default:user.username }}
+                        <li style="padding: 0.5rem 1rem;">
+                            <a href="{% url 'profile' %}"
+                                style="text-decoration: none; color: #6b7280; display: flex; align-items: center; gap: 0.5rem;">
+                                👤 {{ user.get_full_name|default:user.username }}
+                            </a>
                         </li>
                         <li>
                             <form method="post" action="{% url 'logout' %}" style="display: inline; margin: 0;">
