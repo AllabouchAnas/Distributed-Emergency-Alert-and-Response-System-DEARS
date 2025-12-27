@@ -67,15 +67,15 @@ def update_unit_status(request):
             return JsonResponse({'error': 'No active alert found'}, status=400)
         
         # Update status based on action
-        if action == 'en_route':
-            # Transition: AVAILABLE → EN_ROUTE
+        if action == 'on_scene':
+            # Transition: AVAILABLE → ON_SCENE
             if user_unit.status == UnitStatus.AVAILABLE or active_alert.status == AlertStatus.ASSIGNED:
-                user_unit.status = UnitStatus.EN_ROUTE
+                user_unit.status = UnitStatus.ON_SCENE
                 active_alert.status = AlertStatus.IN_PROGRESS
                 user_unit.save()
                 active_alert.save()
-                logger.info(f"Unit {user_unit.unit_name} status updated to EN_ROUTE by {request.user.username}")
-                messages.success(request, 'Status updated to EN ROUTE')
+                logger.info(f"Unit {user_unit.unit_name} status updated to ON_SCENE by {request.user.username}")
+                messages.success(request, 'Status updated to ON SCENE')
         
         elif action == 'complete':
             # Transition: EN_ROUTE/ON_SCENE → AVAILABLE
