@@ -42,7 +42,7 @@ def submit_alert(alert: AlertCreate):
         logger.warning(f"Failed to forward alert {alert_id}: {message}")
         status = "failed_to_forward"
 
-    # Return response
+    # Return response 
     return AlertResponse(
         alert_id=alert_id,
         status=status,

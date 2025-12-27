@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import EmergencyReport, UserProfile
+from .models import Alert, UserProfile
 
 
 class UserRegistrationForm(UserCreationForm):
@@ -94,11 +94,11 @@ class UserRegistrationForm(UserCreationForm):
         return user
 
 
-class EmergencyReportForm(forms.ModelForm):
-    """Form for citizens to submit emergency reports."""
+class AlertForm(forms.ModelForm):
+    """Form for citizens to submit emergency alerts."""
     
     class Meta:
-        model = EmergencyReport
+        model = Alert
         fields = ['emergency_type', 'location', 'latitude', 'longitude', 'description']
         widgets = {
             'emergency_type': forms.Select(attrs={
