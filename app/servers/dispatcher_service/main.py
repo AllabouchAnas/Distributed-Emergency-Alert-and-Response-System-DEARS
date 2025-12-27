@@ -10,5 +10,11 @@ app = FastAPI(
     version="1.0.0"
 )
 
+from .db.db import engine, Base
+from .db import models
+
+# Create database tables
+Base.metadata.create_all(bind=engine)
+
 # Include API routes
 app.include_router(router)

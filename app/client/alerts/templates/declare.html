@@ -70,8 +70,10 @@
                     <div style="margin-top: 0.75rem;">
                         <strong
                             style="display: block; color: var(--color-text-secondary); margin-bottom: 0.25rem;">Address:</strong>
-                        <span style="color: var(--color-text-primary);">{{ user_profile.address }}, {{ user_profile.city
-                            }}</span>
+                        <span style="color: var(--color-text-primary);">
+                            {{ user_profile.address }}{% if user_profile.city %}, {{ user_profile.city }}{% endif %}
+                        </span>
+
                     </div>
                 </div>
 

@@ -6,6 +6,7 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('register/', views.register, name='register'),
     path('declare/', views.declare_emergency, name='declare'),
+    path('my-alerts/', views.my_alerts, name='my_alerts'),
     path('alert-confirmation/', views.alert_confirmation, name='alert_confirmation'),
     path('status/<uuid:report_id>/', views.status_check, name='status'),
     path('dashboard/', views.dashboard, name='dashboard'),
@@ -13,5 +14,6 @@ urlpatterns = [
     path('responder/', responder_views.responder_dashboard, name='responder_dashboard'),
     path('responder/update-status/', responder_views.update_unit_status, name='update_unit_status'),
     path('accounts/login/', views.CustomLoginView.as_view(), name='login'),
+    path('accounts/profile/', views.profile, name='profile'),
     path('accounts/logout/', views.CustomLogoutView.as_view(), name='logout'),
 ]

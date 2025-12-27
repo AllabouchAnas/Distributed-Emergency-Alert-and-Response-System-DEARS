@@ -21,8 +21,11 @@
             <div class="nav-right">
                 <span class="nav-label">Responder Dashboard</span>
                 <div class="user-info">
-                    <span class="user-icon">👤</span>
-                    <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
+                    <a href="{% url 'profile' %}"
+                        style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 0.5rem;">
+                        <span class="user-icon">👤</span>
+                        <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
+                    </a>
                 </div>
                 <form method="post" action="{% url 'logout' %}" style="display: inline; margin: 0;">
                     {% csrf_token %}

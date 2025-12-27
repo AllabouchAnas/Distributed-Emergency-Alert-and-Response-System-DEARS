@@ -29,7 +29,7 @@ def submit_alert(alert: AlertCreate):
     logger.info(f"Received alert: {alert}")
     
     # Generate unique alert ID
-    alert_id = str(uuid.uuid4())
+    alert_id = alert.alert_id if alert.alert_id else str(uuid.uuid4())
     timestamp = datetime.now()
     
     # Forward to Response Service (RPC)
