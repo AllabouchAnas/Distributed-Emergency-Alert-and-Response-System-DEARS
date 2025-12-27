@@ -21,11 +21,12 @@ def home(request):
     search_id = request.GET.get('search_id')
     if search_id:
         try:
-            # Try to parse as int and redirect to status page
-            report_id = int(search_id.strip())
+            # Try to parse as UUID and redirect to status page
+            import uuid
+            report_id = uuid.UUID(search_id.strip())
             return redirect('status', report_id=report_id)
         except (ValueError, AttributeError):
-            messages.error(request, 'Invalid report ID format. Please enter a valid numeric ID.')
+            messages.error(request, 'Invalid report ID format. Please enter a valid UUID.')
     
     return render(request, 'home.html')
 
@@ -49,6 +50,19 @@ def register(request):
 
 
 @login_required
+def my_alerts(request):
+    """View to list all alerts submitted by the current user."""
+    alerts = Alert.objects.filter(user=request.user).order_by('-timestamp')
+    return render(request, 'my_alerts.html', {'alerts': alerts})
+
+
+@login_required
+def profile(request):
+    """User profile view showing role-specific information."""
+    return render(request, 'profile.html', {'user': request.user})
+
+
+@login_required
 def declare_emergency(request):
     """Emergency declaration form view - requires authentication."""
     if request.method == 'POST':
@@ -61,15 +75,39 @@ def declare_emergency(request):
             # alert.status is default PENDING
             alert.save()
             
-            # TODO: Integrate with dispatcher service if needed
-            # alert_data = { ... }
-            # send_alert_to_dispatcher(alert_data)
+            # Send alert to Dispatcher Service
+            try:
+                # Prepare data for dispatcher
+                alert_data = {
+                    "alert_id": str(alert.alert_uuid), # Use UUID
+                    "user_id": request.user.id,
+                    "description": alert.description,
+                    "location": alert.location,
+                    "emergency_type": alert.emergency_type,
+                    "latitude": alert.latitude,
+                    "longitude": alert.longitude
+                }
+                
+                # We need to implement this function since it was imported but not found in file view
+                # Actually, I'll use requests directly here for simplicity or import it if I find it
+                # Looking at imports: `from .services import send_alert_to_dispatcher` was commented out
+                
+                import requests
+                from django.conf import settings
+                
+                dispatcher_url = settings.DISPATCHER_SERVICE_URL
+                requests.post(dispatcher_url, json=alert_data, timeout=5)
+                
+            except Exception as e:
+                logger.error(f"Failed to notify dispatcher: {e}")
+                # Don't fail the user request, just log it. 
+                # Ideally we should have a retry mechanism.
                 
             messages.success(request, f'Emergency alert declared successfully! Alert ID: {alert.alert_id}')
             messages.info(request, 'Emergency services have been notified. Help is on the way.')
             
             # Redirect to status page
-            return redirect('status', report_id=alert.alert_id)
+            return redirect('status', report_id=alert.alert_uuid)
     else:
         form = AlertForm()
     
@@ -84,7 +122,7 @@ def declare_emergency(request):
 
 def status_check(request, report_id):
     """Public status check page for a specific report."""
-    report = get_object_or_404(Alert, alert_id=report_id)
+    report = get_object_or_404(Alert, alert_uuid=report_id)
     search_form = ReportSearchForm()
     
     # Handle search form submission
