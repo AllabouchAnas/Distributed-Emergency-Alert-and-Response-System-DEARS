@@ -7,6 +7,8 @@ from .utils.logger import logger
 class PoliceService(rpyc.Service):
     def on_connect(self, conn):
         logger.info("New connection established.")
+        from .db.db import check_connection
+        check_connection()
 
     def on_disconnect(self, conn):
         logger.info("Connection closed.")

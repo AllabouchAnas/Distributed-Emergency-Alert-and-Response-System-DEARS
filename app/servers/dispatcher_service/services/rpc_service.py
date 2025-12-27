@@ -1,6 +1,6 @@
 import rpyc
 from ..schemas import AlertCreate
-from ..config import RPC_SERVICES
+from ..config import RPC_SERVICES, RPC_TIMEOUT
 from ..utils.logger import logger
 
 
@@ -18,7 +18,7 @@ def forward_alert_to_response_service(alert_data: AlertCreate, alert_id: str) ->
             logger.info(f"Connecting to {alert_data.emergency_type} service at {service_info['host']}:{service_info['port']}")
             
             # Connect to the remote service
-            conn = rpyc.connect(service_info['host'], service_info['port'])
+            conn = rpyc.connect(service_info['host'], service_info['port'], config={"sync_request_timeout": RPC_TIMEOUT})
             
             # Call the remote method
             # Assuming the remote service exposes a 'receive_alert' method
