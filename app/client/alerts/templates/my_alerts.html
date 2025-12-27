@@ -29,8 +29,12 @@
                     <p><strong>Description:</strong> {{ alert.description|truncatechars:100 }}</p>
                 </div>
                 <div class="alert-footer">
+                    {% if alert.alert_uuid %}
                     <a href="{% url 'status' alert.alert_uuid %}" class="btn btn-primary btn-sm">View Status &
                         Details</a>
+                    {% else %}
+                    <span class="btn btn-secondary btn-sm disabled">Details Unavailable</span>
+                    {% endif %}
                 </div>
             </div>
             {% endfor %}
