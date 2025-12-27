@@ -130,7 +130,13 @@
         </div>
 
         <div class="table-container" style="margin-top: 2rem;">
-            <h3 style="padding: 1.5rem; margin: 0; border-bottom: 1px solid var(--color-accent-subtle);">Alerts</h3>
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; padding: 1.5rem; border-bottom: 1px solid var(--color-accent-subtle);">
+                <h3 style="margin: 0;">Alerts</h3>
+                <a href="{% url 'declare_emergency' %}" class="btn btn-primary">
+                    <span style="margin-right: 0.5rem;">➕</span> Create New Alert
+                </a>
+            </div>
             <table class="table">
                 <thead>
                     <tr>
@@ -140,23 +146,39 @@
                         <th>Location</th>
                         <th>Status</th>
                         <th>Created</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for alert in alerts %}
-                    <tr>
-                        <td>#{{ alert.id }}</td>
-                        <td><span class="badge badge-{{ alert.emergency_type|lower }}">{{
-                                alert.get_emergency_type_display }}</span></td>
+                    <tr id="alert-row-{{ alert.alert_id }}">
+                        <td>#{{ alert.alert_id }}</td>
+                        <td>
+                            <span class="badge badge-{{ alert.emergency_type|lower }}">
+                                {{ alert.get_emergency_type_display }}
+                            </span>
+                        </td>
                         <td>{{ alert.user.get_full_name|default:alert.user.username }}</td>
                         <td>{{ alert.location|truncatewords:5 }}</td>
-                        <td><span class="badge badge-status-{{ alert.status|lower }}">{{ alert.get_status_display
-                                }}</span></td>
-                        <td>{{ alert.created_at|date:"M d, H:i" }}</td>
+                        <td>
+                            <span class="badge badge-status-{{ alert.status|lower }}">
+                                {{ alert.get_status_display }}
+                            </span>
+                        </td>
+                        <td>{{ alert.timestamp|date:"M d, H:i" }}</td>
+                        <td>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <a href="{% url 'status' alert.alert_id %}" class="btn-action btn-view">👁️</a>
+                                <button onclick="editAlert('{{ alert.alert_id }}')"
+                                    class="btn-action btn-edit">✏️</button>
+                                <button onclick="deleteAlert('{{ alert.alert_id }}')"
+                                    class="btn-action btn-delete">🗑️</button>
+                            </div>
+                        </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="6" class="text-center text-muted" style="padding: 2rem;">No alerts found.</td>
+                        <td colspan="7" class="text-center text-muted" style="padding: 2rem;">No alerts found.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -390,5 +412,125 @@
         background: var(--success);
         color: white;
     }
+
+    .btn-action {
+        padding: 0.5rem;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        font-size: 1.2rem;
+        transition: transform 0.2s ease;
+        border-radius: 4px;
+    }
+
+    .btn-action:hover {
+        transform: scale(1.2);
+    }
+
+    .btn-view:hover {
+        background: rgba(59, 130, 246, 0.1);
+    }
+
+    .btn-edit:hover {
+        background: rgba(251, 191, 36, 0.1);
+    }
+
+    .btn-delete:hover {
+        background: rgba(239, 68, 68, 0.1);
+    }
 </style>
+
+<script>
+    // Get CSRF token for Django
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    const csrftoken = getCookie('csrftoken');
+
+    // Edit Alert Status
+    function editAlert(alertId) {
+        const statuses = ['PENDING', 'ASSIGNED', 'IN_PROGRESS', 'RESOLVED'];
+        const statusLabels = {
+            'PENDING': 'Pending',
+            'ASSIGNED': 'Assigned',
+            'IN_PROGRESS': 'In Progress',
+            'RESOLVED': 'Resolved'
+        };
+
+        let options = statuses.map(status =>
+            `<option value="${status}">${statusLabels[status]}</option>`
+        ).join('');
+
+        const newStatus = prompt(`Select new status for Alert #${alertId}:\n\nEnter one of:\n- PENDING\n- ASSIGNED\n- IN_PROGRESS\n- RESOLVED`);
+
+        if (newStatus && statuses.includes(newStatus.toUpperCase())) {
+            fetch(`/alerts/update-alert-status/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrftoken
+                },
+                body: `alert_id=${alertId}&status=${newStatus.toUpperCase()}`
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Alert status updated successfully!');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + (data.error || 'Failed to update alert'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to update alert status');
+                });
+        } else if (newStatus !== null) {
+            alert('Invalid status. Please use one of: PENDING, ASSIGNED, IN_PROGRESS, RESOLVED');
+        }
+    }
+
+    // Delete Alert
+    function deleteAlert(alertId) {
+        if (confirm(`Are you sure you want to delete Alert #${alertId}?\n\nThis action cannot be undone.`)) {
+            fetch(`/alerts/delete-alert/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrftoken
+                },
+                body: `alert_id=${alertId}`
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Alert deleted successfully!');
+                        // Remove the row from the table
+                        const row = document.getElementById(`alert-row-${alertId}`);
+                        if (row) {
+                            row.remove();
+                        }
+                    } else {
+                        alert('Error: ' + (data.error || 'Failed to delete alert'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to delete alert');
+                });
+        }
+    }
+</script>
 {% endblock %}
