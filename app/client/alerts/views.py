@@ -10,7 +10,7 @@ import logging
 
 from .models import Alert, UserProfile, ResponseUnit, AlertStatus, EmergencyType, UnitStatus
 from .forms import AlertForm, ReportSearchForm, UserRegistrationForm
-# from .services import send_alert_to_dispatcher # Keeping this import if needed, but might need adjustment
+from .services import send_alert_to_dispatcher
 
 logger = logging.getLogger(__name__)
 
@@ -59,17 +59,25 @@ def declare_emergency(request):
             alert = form.save(commit=False)
             alert.user = request.user
             # alert.status is default PENDING
-            alert.save()
+            # Prepare data for dispatcher
+            alert_data = {
+                'user_id': str(request.user.id), # Assuming user_id is UUID or int, convert to str if needed by dispatcher
+                'emergency_type': alert.emergency_type,
+                'description': alert.description,
+                'location': alert.location,
+                'latitude': alert.latitude,
+                'longitude': alert.longitude,
+            }
             
-            # TODO: Integrate with dispatcher service if needed
-            # alert_data = { ... }
-            # send_alert_to_dispatcher(alert_data)
-                
-            messages.success(request, f'Emergency alert declared successfully! Alert ID: {alert.alert_id}')
-            messages.info(request, 'Emergency services have been notified. Help is on the way.')
+            # Send to dispatcher
+            success, alert_id = send_alert_to_dispatcher(alert_data)
             
-            # Redirect to status page
-            return redirect('status', report_id=alert.alert_id)
+            if success:
+                messages.success(request, f'Emergency alert declared successfully! Alert ID: {alert_id}')
+                messages.info(request, 'Emergency services have been notified. Help is on the way.')
+                return redirect('status', report_id=alert_id)
+            else:
+                messages.error(request, 'Failed to submit alert. Please try again or contact emergency services directly.')
     else:
         form = AlertForm()
     
