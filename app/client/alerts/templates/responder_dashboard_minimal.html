@@ -1,0 +1,146 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responder Dashboard - DEARS</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="{% static 'css/responder_dashboard.css' %}">
+</head>
+
+<body>
+    <!-- Top Navigation Bar -->
+    <nav class="responder-navbar">
+        <div class="nav-container">
+            <div class="nav-left">
+                <div class="logo-icon">⚠</div>
+                <span class="logo-text">DEARS</span>
+            </div>
+            <div class="nav-right">
+                <span class="nav-label">Responder Dashboard</span>
+                <div class="user-info">
+                    <span class="user-icon">👤</span>
+                    <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
+                </div>
+                <form method="post" action="{% url 'logout' %}" style="display: inline; margin: 0;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-logout">Logout</button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Dashboard Content -->
+    <main class="dashboard-main">
+        {% if error_message %}
+        <!-- Error State -->
+        <div class="error-container">
+            <div class="error-card">
+                <h2>⚠️ No Assignment</h2>
+                <p>{{ error_message }}</p>
+                <a href="{% url 'home' %}" class="btn btn-primary">Go Home</a>
+            </div>
+        </div>
+        {% else %}
+        
+        <!-- Unit Status Card -->
+        <div class="unit-status-card">
+            <h2 class="card-title">Your Unit</h2>
+            <div class="unit-details">
+                <div class="detail-row">
+                    <span class="detail-label">Unit Name:</span>
+                    <span class="detail-value">{{ unit.unit_name }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Role:</span>
+                    <span class="detail-value">
+                        {% if unit.unit_type == 'POLICE' %}🚔 Police
+                        {% elif unit.unit_type == 'FIRE' %}🚒 Fire
+                        {% elif unit.unit_type == 'MEDICAL' %}🚑 Medical
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Connection Status:</span>
+                    <span class="detail-value">
+                        <span class="status-dot status-online"></span>
+                        ONLINE
+                    </span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Current Status:</span>
+                    <span class="detail-value status-badge status-{{ unit.status|lower }}">
+                        {{ unit.get_status_display }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Alert Card -->
+        <div class="alert-card">
+            {% if active_alert %}
+            <div class="alert-header">
+                <span class="alert-icon">⚠️</span>
+                <h2 class="alert-title">Active Emergency Alert</h2>
+            </div>
+            <div class="alert-content">
+                <div class="alert-detail">
+                    <span class="detail-label">Type:</span>
+                    <span class="detail-value alert-type-{{ active_alert.emergency_type|lower }}">
+                        {% if active_alert.emergency_type == 'POLICE' %}🚔 Police
+                        {% elif active_alert.emergency_type == 'FIRE' %}🔥 Fire
+                        {% elif active_alert.emergency_type == 'MEDICAL' %}🚑 Medical
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="alert-detail">
+                    <span class="detail-label">Description:</span>
+                    <span class="detail-value">{{ active_alert.description }}</span>
+                </div>
+                <div class="alert-detail">
+                    <span class="detail-label">Location:</span>
+                    <span class="detail-value">{{ active_alert.latitude }}, {{ active_alert.longitude }}</span>
+                </div>
+                <div class="alert-detail">
+                    <span class="detail-label">Alert Status:</span>
+                    <span class="detail-value status-badge status-{{ active_alert.status|lower }}">
+                        {{ active_alert.get_status_display }}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <form method="post" action="{% url 'update_unit_status' %}" class="action-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="en_route">
+                    <button type="submit" class="btn-action btn-en-route" 
+                            {% if unit.status != 'AVAILABLE' and active_alert.status != 'ASSIGNED' %}disabled{% endif %}>
+                        🚗 EN ROUTE
+                    </button>
+                </form>
+                <form method="post" action="{% url 'update_unit_status' %}" class="action-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="complete">
+                    <button type="submit" class="btn-action btn-complete" 
+                            {% if unit.status != 'EN_ROUTE' %}disabled{% endif %}>
+                        ✔ COMPLETE
+                    </button>
+                </form>
+            </div>
+            {% else %}
+            <!-- No Active Alert -->
+            <div class="no-alert">
+                <span class="no-alert-icon">✅</span>
+                <h2>No Active Alert</h2>
+                <p>Awaiting assignment from dispatch...</p>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </main>
+</body>
+
+</html>

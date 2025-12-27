@@ -11,7 +11,7 @@ urlpatterns = [
     path('dashboard/', views.dashboard, name='dashboard'),
     path('dashboard/update-status/', views.update_status, name='update_status'),
     path('responder/', responder_views.responder_dashboard, name='responder_dashboard'),
-    path('responder/update-mission/', responder_views.update_mission_status, name='update_mission_status'),
+    path('responder/update-status/', responder_views.update_unit_status, name='update_unit_status'),
     path('accounts/login/', views.CustomLoginView.as_view(), name='login'),
     path('accounts/logout/', views.CustomLogoutView.as_view(), name='logout'),
 ]
