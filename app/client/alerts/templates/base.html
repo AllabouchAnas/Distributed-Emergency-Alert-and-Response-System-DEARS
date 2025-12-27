@@ -23,8 +23,7 @@
                 <nav>
                     <ul class="nav-links">
                         {% if user.is_authenticated %}
-                        <li><a href="{% url 'declare' %}">Report Emergency</a></li>
-                        <li><a href="{% url 'my_alerts' %}">My Alerts</a></li>
+                        <li><a href="{% url 'declare_emergency' %}">Report Emergency</a></li>
                         {% if user.profile.is_admin %}
                         <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
                         {% elif user.profile.is_responder %}

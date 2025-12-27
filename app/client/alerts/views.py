@@ -162,7 +162,7 @@ def dashboard(request):
     alerts_stats = {
         'total': Alert.objects.count(),
         'pending': Alert.objects.filter(status=AlertStatus.PENDING).count(),
-        'active': Alert.objects.filter(status=AlertStatus.ACTIVE).count(),
+        'active': Alert.objects.filter(status=AlertStatus.IN_PROGRESS).count(),
         'resolved': Alert.objects.filter(status=AlertStatus.RESOLVED).count(),
     }
     
@@ -228,6 +228,67 @@ def update_status(request):
     except Exception as e:
         logger.error(f"Error updating alert status: {str(e)}")
         return JsonResponse({'error': str(e)}, status=500)
+
+
+
+
+@login_required
+@require_POST
+def update_alert_status(request):
+    """Update alert status - admin only."""
+    # Check if user is admin
+    if not request.user.profile.is_admin():
+        return JsonResponse({'success': False, 'error': 'Access denied'}, status=403)
+    
+    alert_id = request.POST.get('alert_id')
+    new_status = request.POST.get('status')
+    
+    try:
+        alert = Alert.objects.get(alert_id=alert_id)
+        
+        # Validate status
+        valid_statuses = [choice[0] for choice in AlertStatus.choices]
+        if new_status not in valid_statuses:
+            return JsonResponse({'success': False, 'error': 'Invalid status'}, status=400)
+        
+        # Update status
+        alert.status = new_status
+        alert.save()
+        
+        logger.info(f"Alert {alert_id} status updated to {new_status} by {request.user.username}")
+        
+        return JsonResponse({'success': True, 'message': 'Alert status updated successfully'})
+    
+    except Alert.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Alert not found'}, status=404)
+    except Exception as e:
+        logger.error(f"Error updating alert status: {str(e)}")
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required
+@require_POST
+def delete_alert(request):
+    """Delete an alert - admin only."""
+    # Check if user is admin
+    if not request.user.profile.is_admin():
+        return JsonResponse({'success': False, 'error': 'Access denied'}, status=403)
+    
+    alert_id = request.POST.get('alert_id')
+    
+    try:
+        alert = Alert.objects.get(alert_id=alert_id)
+        alert.delete()
+        
+        logger.info(f"Alert {alert_id} deleted by {request.user.username}")
+        
+        return JsonResponse({'success': True, 'message': 'Alert deleted successfully'})
+    
+    except Alert.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Alert not found'}, status=404)
+    except Exception as e:
+        logger.error(f"Error deleting alert: {str(e)}")
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
 @login_required
