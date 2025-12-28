@@ -131,6 +131,24 @@
                         <h3 style="margin-bottom: 1rem; font-size: 1rem; color: var(--color-text-secondary);">📍 Alert
                             Location</h3>
                         <div id="alertMap" style="height: 300px; width: 100%; border-radius: 8px;"></div>
+                        <!-- Map Legend -->
+                        <div
+                            style="margin-top: 1rem; padding: 0.75rem; background: #f8f9fa; border-radius: 6px; font-size: 0.875rem;">
+                            <div style="display: flex; gap: 1.5rem; flex-wrap: wrap;">
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <div
+                                        style="width: 12px; height: 12px; background: #dc3545; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.3);">
+                                    </div>
+                                    <span>🚨 Emergency Alert Location</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <div
+                                        style="width: 12px; height: 12px; background: #2A81CB; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.3);">
+                                    </div>
+                                    <span>🚑 Your Unit Location</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     {% endif %}
                 </div>
@@ -140,14 +158,16 @@
                     <form method="post" action="{% url 'update_unit_status' %}" class="action-form">
                         {% csrf_token %}
                         <input type="hidden" name="action" value="on_scene">
-                        <button type="submit" class="btn-action btn-on-scene" {% if unit.status == 'ON_SCENE' %}disabled{% endif %}>
+                        <button type="submit" class="btn-action btn-on-scene" {% if unit.status == 'ON_SCENE' %}disabled{%
+                            endif %}>
                             📍 ON SCENE
                         </button>
                     </form>
                     <form method="post" action="{% url 'update_unit_status' %}" class="action-form">
                         {% csrf_token %}
                         <input type="hidden" name="action" value="complete">
-                        <button type="submit" class="btn-action btn-complete" {% if unit.status != 'ON_SCENE' %}disabled{% endif %}>
+                        <button type="submit" class="btn-action btn-complete" {% if unit.status != 'ON_SCENE'
+                            %}disabled{% endif %}>
                             ✔ COMPLETE
                         </button>
                     </form>
@@ -203,26 +223,83 @@
     <script>
         // Initialize map if coordinates are available
         {% if active_alert and active_alert.latitude and active_alert.longitude %}
+        console.log('Map initialization started');
+        console.log('Alert coords:', {{ active_alert.latitude }}, {{ active_alert.longitude }});
+        {% if unit.latitude and unit.longitude %}
+        console.log('Unit coords:', {{ unit.latitude }}, {{ unit.longitude }});
+        {% else %}
+        console.log('Unit has no coordinates');
+        {% endif %}
+
         document.addEventListener('DOMContentLoaded', function () {
-            // Create map centered on alert location
-            var map = L.map('alertMap').setView([{{ active_alert.latitude }}, {{ active_alert.longitude }}], 15);
+            console.log('DOMContentLoaded fired');
+            try {
+                // Create map centered on alert location initially
+                var map = L.map('alertMap');
+                console.log('Map object created');
 
-        // Add OpenStreetMap tiles
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-            maxZoom: 19
-        }).addTo(map);
+                // Add OpenStreetMap tiles
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                    maxZoom: 19
+                }).addTo(map);
+                console.log('Tile layer added');
 
-        // Add marker at alert location
-        var marker = L.marker([{{ active_alert.latitude }}, {{ active_alert.longitude }}]).addTo(map);
+                var bounds = [];
 
-        // Add popup with alert info
-        marker.bindPopup(`
+                // Create red icon for alert location
+                var alertIcon = L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowSize: [41, 41]
+                });
+
+                // Add marker at alert location with red icon
+                var alertMarker = L.marker([{{ active_alert.latitude }}, {{ active_alert.longitude }}], { icon: alertIcon }).addTo(map);
+        alertMarker.bindPopup(`
                 <strong>Emergency Alert</strong><br>
                 <strong>Type:</strong> {{ active_alert.get_emergency_type_display }}<br>
                 <strong>Location:</strong> {{ active_alert.location }}<br>
                 <strong>Status:</strong> {{ active_alert.get_status_display }}
             `).openPopup();
+        bounds.push([{{ active_alert.latitude }}, {{ active_alert.longitude }}]);
+
+        // Add marker at unit location if available
+        {% if unit.latitude and unit.longitude %}
+        var unitIcon = L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
+
+        var unitMarker =
+
+            L.marker([{{ unit.latitude }}, {{ unit.longitude }}], { icon: unitIcon }).addTo(map);
+        unitMarker.bindPopup(`
+                <strong>Your Unit: {{ unit.unit_name }}</strong><br>
+                <strong>Status:</strong> {{ unit.get_status_display }}
+            `);
+        bounds.push([{{ unit.latitude }}, {{ unit.longitude }}]);
+        {% endif %}
+
+        // Fit map to bounds if we have points
+        if (bounds.length > 0) {
+            map.fitBounds(bounds, { padding: [50, 50] });
+            if (bounds.length === 1) {
+                map.setZoom(15);
+            }
+        } else {
+            map.setView([0, 0], 2); // Default fallback
+        }
+    } catch (error) {
+        console.error('Map initialization error:', error);
+    }
         });
         {% endif %}
     </script>
