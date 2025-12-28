@@ -1,0 +1,122 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Report - DEARS</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="{% static 'css/responder_dashboard.css' %}">
+</head>
+
+<body>
+    <!-- Top Navigation Bar -->
+    <nav class="responder-navbar">
+        <div class="nav-container">
+            <div class="nav-left">
+                <div class="logo-icon">⚠</div>
+                <span class="logo-text">DEARS</span>
+            </div>
+            <div class="nav-right">
+                <span class="nav-label">Submit Report</span>
+                <div class="user-info">
+                    <span class="user-icon">👤</span>
+                    <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+        <div class="alert-card" style="max-width: 700px; margin: 0 auto;">
+            <div class="alert-header">
+                <span class="alert-icon">📝</span>
+                <h2 class="alert-title">Incident Report</h2>
+            </div>
+
+            <!-- Alert Info Summary -->
+            <div class="alert-content"
+                style="margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid #f3f4f6;">
+                <div class="alert-detail">
+                    <span class="detail-label">Alert Type:</span>
+                    <span class="detail-value">
+                        {% if alert.emergency_type == 'POLICE' %}🚔 Police
+                        {% elif alert.emergency_type == 'FIRE' %}🔥 Fire
+                        {% elif alert.emergency_type == 'MEDICAL' %}🚑 Medical
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="alert-detail">
+                    <span class="detail-label">Location:</span>
+                    <span class="detail-value">{{ alert.location }}</span>
+                </div>
+            </div>
+
+            <!-- Report Form -->
+            <form method="post" action="{% url 'submit_report' %}">
+                {% csrf_token %}
+
+                <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+                    <!-- Description -->
+                    <div>
+                        <label for="description"
+                            style="display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;">
+                            Incident Description <span style="color: #dc2626;">*</span>
+                        </label>
+                        <textarea id="description" name="description" required rows="4"
+                            style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; font-size: 0.9375rem; font-family: inherit; resize: vertical;"
+                            placeholder="Describe the situation you encountered at the scene..."></textarea>
+                    </div>
+
+                    <!-- Actions Taken -->
+                    <div>
+                        <label for="actions_taken"
+                            style="display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;">
+                            Actions Taken <span style="color: #dc2626;">*</span>
+                        </label>
+                        <textarea id="actions_taken" name="actions_taken" required rows="4"
+                            style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; font-size: 0.9375rem; font-family: inherit; resize: vertical;"
+                            placeholder="Detail the actions you took to resolve the incident..."></textarea>
+                    </div>
+
+                    <!-- Outcome -->
+                    <div>
+                        <label for="outcome"
+                            style="display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;">
+                            Outcome
+                        </label>
+                        <select id="outcome" name="outcome"
+                            style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; font-size: 0.9375rem; font-family: inherit; background: #ffffff;">
+                            {% for value, label in outcome_choices %}
+                            <option value="{{ value }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Additional Notes -->
+                    <div>
+                        <label for="notes"
+                            style="display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.5rem;">
+                            Additional Notes
+                        </label>
+                        <textarea id="notes" name="notes" rows="3"
+                            style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; font-size: 0.9375rem; font-family: inherit; resize: vertical;"
+                            placeholder="Any additional information (optional)..."></textarea>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div style="padding-top: 1rem; border-top: 1px solid #f3f4f6;">
+                        <button type="submit" class="btn-action btn-complete"
+                            style="width: 100%; padding: 1rem; font-size: 1rem;">
+                            ✅ Submit Report & Complete Alert
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </main>
+</body>
+
+</html>

@@ -1,0 +1,132 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report #{{ report.report_id }} - DEARS</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="{% static 'css/responder_dashboard.css' %}">
+</head>
+
+<body>
+    <!-- Top Navigation Bar -->
+    <nav class="responder-navbar">
+        <div class="nav-container">
+            <div class="nav-left">
+                <div class="logo-icon">⚠</div>
+                <span class="logo-text">DEARS</span>
+            </div>
+            <div class="nav-right">
+                <span class="nav-label">Report Details</span>
+                <div class="user-info">
+                    <span class="user-icon">👤</span>
+                    <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+        <div class="alert-card" style="max-width: 800px; margin: 0 auto;">
+            <div class="alert-header">
+                <span class="alert-icon">📋</span>
+                <h2 class="alert-title">Report #{{ report.report_id }}</h2>
+            </div>
+
+            <!-- Report Info -->
+            <div class="alert-content" style="display: grid; gap: 1.5rem;">
+
+                <!-- Alert Information -->
+                <div style="padding-bottom: 1rem; border-bottom: 2px solid #f3f4f6;">
+                    <h3 style="font-size: 1rem; font-weight: 600; color: #374151; margin-bottom: 0.75rem;">Alert
+                        Information</h3>
+                    <div style="display: grid; gap: 0.75rem;">
+                        <div class="alert-detail">
+                            <span class="detail-label">Alert Type:</span>
+                            <span class="detail-value">
+                                {% if report.alert.emergency_type == 'POLICE' %}🚔 Police
+                                {% elif report.alert.emergency_type == 'FIRE' %}🔥 Fire
+                                {% elif report.alert.emergency_type == 'MEDICAL' %}🚑 Medical
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="alert-detail">
+                            <span class="detail-label">Location:</span>
+                            <span class="detail-value">{{ report.alert.location }}</span>
+                        </div>
+                        <div class="alert-detail">
+                            <span class="detail-label">Alert Status:</span>
+                            <span class="detail-value status-badge status-{{ report.alert.status|lower }}">
+                                {{ report.alert.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Responder Information -->
+                <div style="padding-bottom: 1rem; border-bottom: 2px solid #f3f4f6;">
+                    <h3 style="font-size: 1rem; font-weight: 600; color: #374151; margin-bottom: 0.75rem;">Responder
+                        Information</h3>
+                    <div style="display: grid; gap: 0.75rem;">
+                        <div class="alert-detail">
+                            <span class="detail-label">Responder:</span>
+                            <span class="detail-value">
+                                {% if report.responder.get_full_name %}
+                                {{ report.responder.get_full_name }}
+                                {% else %}
+                                {{ report.responder.username }}
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="alert-detail">
+                            <span class="detail-label">Unit:</span>
+                            <span class="detail-value">{{ report.response_unit.unit_name|default:"N/A" }}</span>
+                        </div>
+                        <div class="alert-detail">
+                            <span class="detail-label">Submitted:</span>
+                            <span class="detail-value">{{ report.timestamp|date:"F d, Y - H:i" }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Report Content -->
+                <div>
+                    <h3 style="font-size: 1rem; font-weight: 600; color: #374151; margin-bottom: 0.75rem;">Incident
+                        Description</h3>
+                    <p style="color: #4b5563; line-height: 1.6; white-space: pre-wrap;">{{ report.description }}</p>
+                </div>
+
+                <div>
+                    <h3 style="font-size: 1rem; font-weight: 600; color: #374151; margin-bottom: 0.75rem;">Actions Taken
+                    </h3>
+                    <p style="color: #4b5563; line-height: 1.6; white-space: pre-wrap;">{{ report.actions_taken }}</p>
+                </div>
+
+                <div>
+                    <h3 style="font-size: 1rem; font-weight: 600; color: #374151; margin-bottom: 0.75rem;">Outcome</h3>
+                    <span class="status-badge status-{{ report.outcome|lower }}">{{ report.get_outcome_display }}</span>
+                </div>
+
+                {% if report.notes %}
+                <div>
+                    <h3 style="font-size: 1rem; font-weight: 600; color: #374151; margin-bottom: 0.75rem;">Additional
+                        Notes</h3>
+                    <p style="color: #4b5563; line-height: 1.6; white-space: pre-wrap;">{{ report.notes }}</p>
+                </div>
+                {% endif %}
+
+                <!-- Back Button -->
+                <div style="padding-top: 1rem; border-top: 1px solid #f3f4f6;">
+                    <a href="{% url 'dashboard' %}?tab=reports" class="btn btn-primary" style="display: inline-block;">
+                        ← Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>

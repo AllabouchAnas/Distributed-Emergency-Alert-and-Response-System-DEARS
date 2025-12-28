@@ -3,6 +3,146 @@
 {% block title %}Admin Dashboard - DEARS{% endblock %}
 
 {% block content %}
+<!-- Edit Unit Modal -->
+<div id="editUnitModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <h3>Edit Response Unit</h3>
+        <form id="editUnitForm">
+            <input type="hidden" id="editUnitId" name="unit_id">
+
+            <div class="form-group">
+                <label for="editLocation">Location:</label>
+                <input type="text" id="editLocation" name="location" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="editStatus">Status:</label>
+                <select id="editStatus" name="status" class="form-control" required>
+                    <option value="AVAILABLE">Available</option>
+                    <option value="EN_ROUTE">En Route</option>
+                    <option value="ON_SCENE">On Scene</option>
+                    <option value="UNAVAILABLE">Unavailable</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="editContact">Contact:</label>
+                <input type="text" id="editContact" name="contact" class="form-control">
+            </div>
+
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <button type="button" onclick="closeEditModal()" class="btn btn-secondary">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Alert Modal -->
+<div id="editAlertModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <h3>Edit Alert</h3>
+        <form id="editAlertForm">
+            <input type="hidden" id="editAlertId" name="alert_id">
+
+            <div class="form-group">
+                <label for="editAlertStatus">Status:</label>
+                <select id="editAlertStatus" name="status" class="form-control" required>
+                    <option value="PENDING">Pending</option>
+                    <option value="ASSIGNED">Assigned</option>
+                    <option value="IN_PROGRESS">In Progress</option>
+                    <option value="RESOLVED">Resolved</option>
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <button type="button" onclick="closeAlertEditModal()" class="btn btn-secondary">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Create Response Unit Modal -->
+<div id="createUnitModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <h3>Create Response Unit</h3>
+        <form id="createUnitForm">
+            <div class="form-group">
+                <label for="newUnitName">Unit Name:</label>
+                <input type="text" id="newUnitName" name="unit_name" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="newUnitType">Unit Type:</label>
+                <select id="newUnitType" name="unit_type" class="form-control" required>
+                    <option value="POLICE">Police</option>
+                    <option value="FIRE">Fire</option>
+                    <option value="MEDICAL">Medical</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="newUnitLocation">Location:</label>
+                <input type="text" id="newUnitLocation" name="location" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="newUnitContact">Contact Info:</label>
+                <input type="text" id="newUnitContact" name="contact" class="form-control">
+            </div>
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                <button type="submit" class="btn btn-primary">Create Unit</button>
+                <button type="button" onclick="closeCreateUnitModal()" class="btn btn-secondary">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Create User Modal -->
+<div id="createUserModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <h3>Create User</h3>
+        <form id="createUserForm">
+            <div class="form-group">
+                <label for="newUsername">Username:</label>
+                <input type="text" id="newUsername" name="username" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="newEmail">Email:</label>
+                <input type="email" id="newEmail" name="email" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="newFirstName">First Name:</label>
+                <input type="text" id="newFirstName" name="first_name" class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label for="newLastName">Last Name:</label>
+                <input type="text" id="newLastName" name="last_name" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="newPassword">Password:</label>
+                <input type="password" id="newPassword" name="password" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="newPasswordConfirm">Confirm Password:</label>
+                <input type="password" id="newPasswordConfirm" name="password_confirm" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="newUserRole">Role:</label>
+                <select id="newUserRole" name="role" class="form-control" required>
+                    <option value="CITIZEN">Citizen</option>
+                    <option value="ADMIN">Admin</option>
+                    <option value="RESPONDER">Responder</option>
+                </select>
+            </div>
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                <button type="submit" class="btn btn-primary">Create User</button>
+                <button type="button" onclick="closeCreateUserModal()" class="btn btn-secondary">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <section style="padding: 3rem 0;">
     <div class="container">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
@@ -10,6 +150,9 @@
                 <h1>Admin Dashboard</h1>
                 <p class="text-muted">Monitor and manage alerts, reports, and response units</p>
             </div>
+            <button onclick="openCreateUserModal()" class="btn btn-primary">
+                <span style="margin-right: 0.5rem;">➕</span> Create User
+            </button>
         </div>
 
         <!-- Tabs -->
@@ -30,28 +173,28 @@
                     <span class="stat-title">Active</span>
                     <span class="stat-icon">📊</span>
                 </div>
-                <div class="stat-value">{{ reports_stats.active }}</div>
+                <div class="stat-value">{{ reports_stats.active|default:0 }}</div>
             </div>
             <div class="stat-card">
                 <div class="stat-header">
                     <span class="stat-title">In Progress</span>
                     <span class="stat-icon">🚨</span>
                 </div>
-                <div class="stat-value">{{ reports_stats.in_progress }}</div>
+                <div class="stat-value">{{ reports_stats.in_progress|default:0 }}</div>
             </div>
             <div class="stat-card">
                 <div class="stat-header">
                     <span class="stat-title">Resolved</span>
                     <span class="stat-icon">✅</span>
                 </div>
-                <div class="stat-value">{{ reports_stats.resolved }}</div>
+                <div class="stat-value">{{ reports_stats.resolved|default:0 }}</div>
             </div>
             <div class="stat-card">
                 <div class="stat-header">
                     <span class="stat-title">Total</span>
                     <span class="stat-icon">📈</span>
                 </div>
-                <div class="stat-value">{{ reports_stats.total }}</div>
+                <div class="stat-value">{{ reports_stats.total|default:0 }}</div>
             </div>
         </div>
 
@@ -85,7 +228,37 @@
                 </thead>
                 <tbody>
                     {% for report in reports %}
-                    {% include 'partials/report_row.html' %}
+                    <tr>
+                        <td>#{{ report.report_id }}</td>
+                        <td>
+                            <span class="badge badge-{{ report.alert.emergency_type|lower }}">
+                                {% if report.alert.emergency_type == 'POLICE' %}
+                                🚔
+                                {% elif report.alert.emergency_type == 'FIRE' %}
+                                🔥
+                                {% elif report.alert.emergency_type == 'MEDICAL' %}
+                                🚑
+                                {% endif %}
+                                {{ report.alert.get_emergency_type_display }}
+                            </span>
+                        </td>
+                        <td>
+                            {{ report.responder.get_full_name|default:report.responder.username }}
+                        </td>
+                        <td>{{ report.alert.location|truncatewords:5 }}</td>
+                        <td>
+                            <span class="badge badge-status-{{ report.outcome|lower }}">
+                                {{ report.get_outcome_display }}
+                            </span>
+                        </td>
+                        <td>{{ report.timestamp|date:"M d, H:i" }}</td>
+                        <td>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <a href="{% url 'view_report' report.report_id %}" class="btn-action btn-view"
+                                    title="View Full Report">👁️</a>
+                            </div>
+                        </td>
+                    </tr>
                     {% empty %}
                     <tr>
                         <td colspan="7" class="text-center text-muted" style="padding: 2rem;">No reports found.</td>
@@ -104,28 +277,28 @@
                     <span class="stat-title">New</span>
                     <span class="stat-icon">🆕</span>
                 </div>
-                <div class="stat-value">{{ alerts_stats.new }}</div>
+                <div class="stat-value">{{ alerts_stats.new|default:0 }}</div>
             </div>
             <div class="stat-card">
                 <div class="stat-header">
                     <span class="stat-title">Dispatched</span>
                     <span class="stat-icon">📤</span>
                 </div>
-                <div class="stat-value">{{ alerts_stats.dispatched }}</div>
+                <div class="stat-value">{{ alerts_stats.dispatched|default:0 }}</div>
             </div>
             <div class="stat-card">
                 <div class="stat-header">
                     <span class="stat-title">In Progress</span>
                     <span class="stat-icon">⚡</span>
                 </div>
-                <div class="stat-value">{{ alerts_stats.in_progress }}</div>
+                <div class="stat-value">{{ alerts_stats.in_progress|default:0 }}</div>
             </div>
             <div class="stat-card">
                 <div class="stat-header">
                     <span class="stat-title">Total</span>
                     <span class="stat-icon">📊</span>
                 </div>
-                <div class="stat-value">{{ alerts_stats.total }}</div>
+                <div class="stat-value">{{ alerts_stats.total|default:0 }}</div>
             </div>
         </div>
 
@@ -168,7 +341,7 @@
                         <td>{{ alert.timestamp|date:"M d, H:i" }}</td>
                         <td>
                             <div style="display: flex; gap: 0.5rem;">
-                                <a href="{% url 'status' alert.alert_id %}" class="btn-action btn-view">👁️</a>
+                                <a href="{% url 'status' alert.alert_uuid %}" class="btn-action btn-view">👁️</a>
                                 <button onclick="editAlert('{{ alert.alert_id }}')"
                                     class="btn-action btn-edit">✏️</button>
                                 <button onclick="deleteAlert('{{ alert.alert_id }}')"
@@ -194,29 +367,35 @@
                     <span class="stat-title">Available</span>
                     <span class="stat-icon">✅</span>
                 </div>
-                <div class="stat-value">{{ units_stats.available }}</div>
+                <div class="stat-value">{{ units_stats.available|default:0 }}</div>
             </div>
             <div class="stat-card">
                 <div class="stat-header">
                     <span class="stat-title">En Route</span>
                     <span class="stat-icon">🚗</span>
                 </div>
-                <div class="stat-value">{{ units_stats.en_route }}</div>
+                <div class="stat-value">{{ units_stats.en_route|default:0 }}</div>
             </div>
             <div class="stat-card">
                 <div class="stat-header">
                     <span class="stat-title">On Site</span>
                     <span class="stat-icon">📍</span>
                 </div>
-                <div class="stat-value">{{ units_stats.on_site }}</div>
+                <div class="stat-value">{{ units_stats.on_site|default:0 }}</div>
             </div>
             <div class="stat-card">
                 <div class="stat-header">
                     <span class="stat-title">Total Units</span>
                     <span class="stat-icon">🚨</span>
                 </div>
-                <div class="stat-value">{{ units_stats.total }}</div>
+                <div class="stat-value">{{ units_stats.total|default:0 }}</div>
             </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; margin: 1rem 0;">
+            <button onclick="openCreateUnitModal()" class="btn btn-primary">
+                <span style="margin-right: 0.5rem;">➕</span> Create Unit
+            </button>
         </div>
 
         <div class="card" style="padding: 1.5rem; margin: 1rem 0;">
@@ -224,14 +403,14 @@
                 <a href="?tab=units&unit_type=all"
                     class="filter-btn {% if unit_type_filter == 'all' %}active{% endif %}">All Units</a>
                 <a href="?tab=units&unit_type=POLICE"
-                    class="filter-btn {% if unit_type_filter == 'POLICE' %}active{% endif %}">🚔 Police ({{
-                    units_stats.police }})</a>
+                    class="filter-btn {% if unit_type_filter == 'POLICE' %}active{% endif %}">🚔 Police
+                    ({{units_stats.police }})</a>
                 <a href="?tab=units&unit_type=FIRE"
-                    class="filter-btn {% if unit_type_filter == 'FIRE' %}active{% endif %}">🚒 Fire ({{ units_stats.fire
-                    }})</a>
+                    class="filter-btn {% if unit_type_filter == 'FIRE' %}active{% endif %}">🚒 Fire ({{
+                    units_stats.fire}})</a>
                 <a href="?tab=units&unit_type=MEDICAL"
-                    class="filter-btn {% if unit_type_filter == 'MEDICAL' %}active{% endif %}">🚑 Medical ({{
-                    units_stats.medical }})</a>
+                    class="filter-btn {% if unit_type_filter == 'MEDICAL' %}active{% endif %}">🚑 Medical
+                    ({{units_stats.medical }})</a>
             </div>
         </div>
 
@@ -247,64 +426,34 @@
                         <th>Location</th>
                         <th>Status</th>
                         <th>Contact</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for unit in units %}
                     <tr>
-                        <td>{{ unit.id }}</td>
+                        <td>{{ unit.unit_id }}</td>
                         <td>{{ unit.unit_name }}</td>
                         <td><span class="badge badge-{{ unit.unit_type|lower }}">{{ unit.get_unit_type_display }}</span>
                         </td>
                         <td>{{ unit.current_location }}</td>
-                        <td><span class="badge badge-status-{{ unit.status|lower }}">{{ unit.get_status_display
-                                }}</span></td>
-                        <td>{{ unit.contact_info|default:"N/A" }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="6" class="text-center text-muted" style="padding: 2rem;">No units found.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% endif %}
-
-        <!-- Active Responses Tab -->
-        {% if current_tab == 'responses' %}
-        <div class="table-container">
-            <h3 style="padding: 1.5rem; margin: 0; border-bottom: 1px solid var(--color-accent-subtle);">Active
-                Responses</h3>
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Response ID</th>
-                        <th>Alert</th>
-                        <th>Unit</th>
-                        <th>Status</th>
-                        <th>Assigned</th>
-                        <th>Arrived</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for response in active_responses %}
-                    <tr>
-                        <td>#{{ response.id }}</td>
-                        <td>
-                            <strong>Alert #{{ response.alert.id }}</strong><br>
-                            <small>{{ response.alert.get_emergency_type_display }} - {{
-                                response.alert.location|truncatewords:3 }}</small>
+                        <td><span class="badge badge-status-{{ unit.status|lower }}">{{ unit.get_status_display}}</span>
                         </td>
-                        <td>{{ response.response_unit.unit_name }}</td>
-                        <td><span class="badge badge-status-{{ response.status|lower }}">{{ response.get_status_display
-                                }}</span></td>
-                        <td>{{ response.assigned_at|date:"M d, H:i" }}</td>
-                        <td>{{ response.arrived_at|date:"M d, H:i"|default:"—" }}</td>
+                        <td>{{ unit.contact_info|default:"N/A" }}</td>
+                        <td>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button onclick="viewUnit('{{ unit.unit_id }}')" class="btn-action btn-view"
+                                    title="View Details">👁️</button>
+                                <button onclick="editUnit('{{ unit.unit_id }}')" class="btn-action btn-edit"
+                                    title="Edit Unit">✏️</button>
+                                <button onclick="deleteUnit('{{ unit.unit_id }}')" class="btn-action btn-delete"
+                                    title="Delete Unit">🗑️</button>
+                            </div>
+                        </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="6" class="text-center text-muted" style="padding: 2rem;">No active responses.</td>
+                        <td colspan="8" class="text-center text-muted" style="padding: 2rem;">No units found.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -312,7 +461,7 @@
         </div>
         {% endif %}
 
-    </div>
+
 </section>
 
 <style>
@@ -369,17 +518,22 @@
     }
 
     .badge-status-available {
-        background: var(--success);
+        background: #10b981;
         color: white;
     }
 
     .badge-status-en_route {
-        background: var(--warning);
+        background: #f59e0b;
         color: white;
     }
 
-    .badge-status-on_site {
-        background: var(--info);
+    .badge-status-on_scene {
+        background: #3b82f6;
+        color: white;
+    }
+
+    .badge-status-unavailable {
+        background: #ef4444;
         color: white;
     }
 
@@ -394,23 +548,23 @@
     }
 
     .badge-status-in_progress {
-        background: var(--warning);
+        background: #8b5cf6;
         color: white;
     }
 
     .badge-status-resolved {
-        background: var(--success);
-        color: white;
+        background: #d1fae5;
+        color: #065f46;
     }
 
     .badge-status-assigned {
-        background: var(--info);
-        color: white;
+        background: #dbeafe;
+        color: #1e40af;
     }
 
     .badge-status-completed {
-        background: var(--success);
-        color: white;
+        background: #d1fae5;
+        color: #065f46;
     }
 
     .btn-action {
@@ -438,6 +592,67 @@
     .btn-delete:hover {
         background: rgba(239, 68, 68, 0.1);
     }
+
+    /* Modal Styles */
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-content {
+        background: white;
+        padding: 2rem;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 500px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        max-height: 85vh;
+        overflow-y: auto;
+    }
+
+    .modal-content h3 {
+        margin-top: 0;
+        color: var(--primary);
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 1rem;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary);
+    }
+
+    .btn-secondary {
+        background: #6b7280;
+    }
+
+    .btn-secondary:hover {
+        background: #4b5563;
+    }
 </style>
 
 <script>
@@ -461,46 +676,58 @@
 
     // Edit Alert Status
     function editAlert(alertId) {
-        const statuses = ['PENDING', 'ASSIGNED', 'IN_PROGRESS', 'RESOLVED'];
-        const statusLabels = {
-            'PENDING': 'Pending',
-            'ASSIGNED': 'Assigned',
-            'IN_PROGRESS': 'In Progress',
-            'RESOLVED': 'Resolved'
-        };
-
-        let options = statuses.map(status =>
-            `<option value="${status}">${statusLabels[status]}</option>`
-        ).join('');
-
-        const newStatus = prompt(`Select new status for Alert #${alertId}:\n\nEnter one of:\n- PENDING\n- ASSIGNED\n- IN_PROGRESS\n- RESOLVED`);
-
-        if (newStatus && statuses.includes(newStatus.toUpperCase())) {
-            fetch(`/alerts/update-alert-status/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-CSRFToken': csrftoken
-                },
-                body: `alert_id=${alertId}&status=${newStatus.toUpperCase()}`
+        // Fetch current alert status
+        fetch(`/alerts/get-alert/${alertId}/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('editAlertId').value = alertId;
+                    document.getElementById('editAlertStatus').value = data.alert.status;
+                    document.getElementById('editAlertModal').style.display = 'flex';
+                } else {
+                    alert('Error loading alert data');
+                }
             })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Alert status updated successfully!');
-                        location.reload();
-                    } else {
-                        alert('Error: ' + (data.error || 'Failed to update alert'));
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Failed to update alert status');
-                });
-        } else if (newStatus !== null) {
-            alert('Invalid status. Please use one of: PENDING, ASSIGNED, IN_PROGRESS, RESOLVED');
-        }
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to load alert data');
+            });
     }
+
+    function closeAlertEditModal() {
+        document.getElementById('editAlertModal').style.display = 'none';
+    }
+
+    // Handle alert edit form submission
+    document.getElementById('editAlertForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const alertId = formData.get('alert_id');
+        const status = formData.get('status');
+
+        fetch(`/alerts/update-alert-status/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrftoken
+            },
+            body: `alert_id=${alertId}&status=${status}`
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Alert updated successfully!');
+                    closeAlertEditModal();
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to update alert');
+            });
+    });
 
     // Delete Alert
     function deleteAlert(alertId) {
@@ -532,5 +759,146 @@
                 });
         }
     }
+
+    // Response Unit Actions
+    function viewUnit(unitId) {
+        alert('View unit details - Unit ID: ' + unitId);
+        // TODO: Implement unit details view
+    }
+
+    function editUnit(unitId) {
+        // Fetch unit data and populate modal
+        fetch(`/alerts/get-unit/${unitId}/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('editUnitId').value = unitId;
+                    document.getElementById('editLocation').value = data.unit.location;
+                    document.getElementById('editStatus').value = data.unit.status;
+                    document.getElementById('editContact').value = data.unit.contact || '';
+                    document.getElementById('editUnitModal').style.display = 'flex';
+                } else {
+                    alert('Error loading unit data');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to load unit data');
+            });
+    }
+
+    function closeEditModal() {
+        document.getElementById('editUnitModal').style.display = 'none';
+    }
+
+    // Handle edit form submission
+    document.getElementById('editUnitForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const unitId = formData.get('unit_id');
+
+        fetch(`/alerts/update-unit/${unitId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken
+            },
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Unit updated successfully!');
+                    closeEditModal();
+                    location.reload(); // Reload to show updated data
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to update unit');
+            });
+    });
+
+    function deleteUnit(unitId) {
+        if (confirm('Are you sure you want to delete this unit?')) {
+            alert('Delete unit functionality - Unit ID: ' + unitId);
+            // TODO: Implement unit deletion
+        }
+    }
+
+    // Create Unit Modal Functions
+    function openCreateUnitModal() {
+        document.getElementById('createUnitModal').style.display = 'flex';
+    }
+
+    function closeCreateUnitModal() {
+        document.getElementById('createUnitModal').style.display = 'none';
+        document.getElementById('createUnitForm').reset();
+    }
+
+    document.getElementById('createUnitForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+
+        fetch('/alerts/create-unit/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken
+            },
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Unit created successfully!');
+                    closeCreateUnitModal();
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to create unit');
+            });
+    });
+
+    // Create User Modal Functions
+    function openCreateUserModal() {
+        document.getElementById('createUserModal').style.display = 'flex';
+    }
+
+    function closeCreateUserModal() {
+        document.getElementById('createUserModal').style.display = 'none';
+        document.getElementById('createUserForm').reset();
+    }
+
+    document.getElementById('createUserForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+
+        fetch('/alerts/create-user/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken
+            },
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('User created successfully!');
+                    closeCreateUserModal();
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to create user');
+            });
+    });
 </script>
 {% endblock %}

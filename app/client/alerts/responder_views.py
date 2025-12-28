@@ -5,7 +5,7 @@ from django.views.decorators.http import require_POST
 from django.contrib import messages
 import logging
 
-from .models import ResponseUnit, Alert, AlertStatus, UnitStatus
+from .models import ResponseUnit, Alert, AlertStatus, UnitStatus, Report, ReportOutcome
 
 logger = logging.getLogger(__name__)
 
@@ -78,14 +78,14 @@ def update_unit_status(request):
                 messages.success(request, 'Status updated to ON SCENE')
         
         elif action == 'complete':
-            # Transition: EN_ROUTE/ON_SCENE → AVAILABLE
-            if user_unit.status == UnitStatus.EN_ROUTE or user_unit.status == UnitStatus.ON_SCENE:
-                user_unit.status = UnitStatus.AVAILABLE
-                active_alert.status = AlertStatus.RESOLVED
-                user_unit.save()
-                active_alert.save()
-                logger.info(f"Unit {user_unit.unit_name} completed alert {active_alert.alert_id} by {request.user.username}")
-                messages.success(request, 'Alert marked as COMPLETE')
+            # Redirect to report form (unit stays ON_SCENE)
+            if user_unit.status == UnitStatus.ON_SCENE:
+                # Store alert ID in session for report form
+                request.session['pending_report_alert_id'] = active_alert.alert_id
+                return redirect('submit_report')
+            else:
+                messages.error(request, 'Unit must be ON SCENE to complete alert')
+                return redirect('responder_dashboard')
         
         else:
             return JsonResponse({'error': 'Invalid action'}, status=400)
@@ -97,3 +97,90 @@ def update_unit_status(request):
         logger.error(f"Error updating unit status: {str(e)}")
         messages.error(request, f'Error updating status: {str(e)}')
         return redirect('responder_dashboard')
+
+
+@login_required
+def submit_report(request):
+    """Display report form and handle report submission."""
+    if not request.user.profile.is_responder():
+        messages.error(request, 'Access denied. Responder privileges required.')
+        return redirect('home')
+    
+    # Get alert ID from session
+    alert_id = request.session.get('pending_report_alert_id')
+    if not alert_id:
+        messages.error(request, 'No pending report found')
+        return redirect('responder_dashboard')
+    
+    try:
+        alert = Alert.objects.get(alert_id=alert_id)
+        user_unit = request.user.profile.assigned_unit
+        
+        if request.method == 'POST':
+            # Get form data
+            description = request.POST.get('description', '').strip()
+            actions_taken = request.POST.get('actions_taken', '').strip()
+            outcome = request.POST.get('outcome', ReportOutcome.RESOLVED)
+            notes = request.POST.get('notes', '').strip()
+            
+            # Validate required fields
+            if not description or not actions_taken:
+                messages.error(request, 'Description and Actions Taken are required')
+                return render(request, 'submit_report.html', {'alert': alert})
+            
+            # Create report
+            Report.objects.create(
+                alert=alert,
+                responder=request.user,
+                response_unit=user_unit,
+                description=description,
+                actions_taken=actions_taken,
+                outcome=outcome,
+                notes=notes
+            )
+            
+            # Update alert and unit status
+            alert.status = AlertStatus.RESOLVED
+            alert.save()
+            
+            user_unit.status = UnitStatus.AVAILABLE
+            user_unit.save()
+            
+            # Clear session
+            del request.session['pending_report_alert_id']
+            
+            logger.info(f"Report submitted for alert {alert_id} by {request.user.username}")
+            messages.success(request, 'Report submitted successfully')
+            return redirect('responder_dashboard')
+        
+        # GET request - display form
+        context = {
+            'alert': alert,
+            'unit': user_unit,
+            'outcome_choices': ReportOutcome.choices
+        }
+        return render(request, 'submit_report.html', context)
+        
+    except Alert.DoesNotExist:
+        messages.error(request, 'Alert not found')
+        return redirect('responder_dashboard')
+    except Exception as e:
+        logger.error(f"Error submitting report: {str(e)}")
+        messages.error(request, f'Error submitting report: {str(e)}')
+        return redirect('responder_dashboard')
+
+
+@login_required
+def view_report(request, report_id):
+    """Display full report details."""
+    try:
+        report = Report.objects.select_related('alert', 'responder', 'response_unit').get(report_id=report_id)
+        
+        context = {
+            'report': report,
+        }
+        return render(request, 'view_report.html', context)
+        
+    except Report.DoesNotExist:
+        messages.error(request, 'Report not found')
+        return redirect('dashboard')

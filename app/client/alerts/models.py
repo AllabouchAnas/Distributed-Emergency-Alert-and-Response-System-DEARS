@@ -122,6 +122,12 @@ class ResponseUnit(models.Model):
         choices=UnitStatus.choices, 
         default=UnitStatus.AVAILABLE
     )  # status
+    contact_info = models.CharField(
+        max_length=100,
+        null=True,
+        blank=True,
+        help_text="Contact information for the response unit"
+    )  # contact information
 
     class Meta:
         verbose_name = 'Response Unit'
@@ -195,3 +201,62 @@ class Alert(models.Model):
     def assign_unit(self, unit):
         self.assigned_unit = unit
         self.save()
+
+
+class ReportOutcome(models.TextChoices):
+    RESOLVED = 'RESOLVED', 'Resolved'
+    REFERRED = 'REFERRED', 'Referred to Another Agency'
+    ONGOING = 'ONGOING', 'Ongoing'
+
+
+class Report(models.Model):
+    """
+    Report submitted by responders when completing an alert.
+    """
+    report_id = models.AutoField(primary_key=True)
+    alert = models.ForeignKey(
+        Alert,
+        on_delete=models.CASCADE,
+        related_name='reports',
+        help_text='Associated alert'
+    )
+    responder = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='submitted_reports',
+        help_text='Responder who submitted the report'
+    )
+    response_unit = models.ForeignKey(
+        ResponseUnit,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='reports',
+        help_text='Response unit involved'
+    )
+    
+    # Timestamps
+    timestamp = models.DateTimeField(auto_now_add=True, help_text='Report submission time')
+    arrival_time = models.DateTimeField(null=True, blank=True, help_text='Time arrived at scene')
+    completion_time = models.DateTimeField(null=True, blank=True, help_text='Time incident completed')
+    
+    # Report content
+    description = models.TextField(help_text='Description of the incident')
+    actions_taken = models.TextField(help_text='Actions taken by responder')
+    outcome = models.CharField(
+        max_length=20,
+        choices=ReportOutcome.choices,
+        default=ReportOutcome.RESOLVED,
+        help_text='Outcome of the response'
+    )
+    notes = models.TextField(blank=True, help_text='Additional notes')
+    
+    class Meta:
+        verbose_name = 'Report'
+        verbose_name_plural = 'Reports'
+        db_table = 'reports'
+        ordering = ['-timestamp']
+    
+    def __str__(self):
+        return f"Report {self.report_id} for Alert {self.alert.alert_id}"
+

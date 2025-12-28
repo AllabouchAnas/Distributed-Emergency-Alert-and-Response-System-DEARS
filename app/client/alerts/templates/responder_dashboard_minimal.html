@@ -104,7 +104,12 @@
                 </div>
                 <div class="alert-detail">
                     <span class="detail-label">Location:</span>
-                    <span class="detail-value">{{ active_alert.latitude }}, {{ active_alert.longitude }}</span>
+                    <span class="detail-value">
+                        {{ active_alert.location }}
+                        {% if active_alert.latitude and active_alert.longitude %}
+                        <small class="text-muted">({{ active_alert.latitude }}, {{ active_alert.longitude }})</small>
+                        {% endif %}
+                    </span>
                 </div>
                 <div class="alert-detail">
                     <span class="detail-label">Alert Status:</span>

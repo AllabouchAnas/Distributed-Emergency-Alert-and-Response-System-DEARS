@@ -4,11 +4,11 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth import login
 from django.contrib import messages
 from django.http import JsonResponse
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_http_methods
 from django.db.models import Q
 import logging
 
-from .models import Alert, UserProfile, ResponseUnit, AlertStatus, EmergencyType, UnitStatus
+from .models import Alert, UserProfile, ResponseUnit, AlertStatus, EmergencyType, UnitStatus, Report
 from .forms import AlertForm, ReportSearchForm, UserRegistrationForm
 # from .services import send_alert_to_dispatcher # Keeping this import if needed, but might need adjustment
 
@@ -161,8 +161,9 @@ def dashboard(request):
     
     alerts_stats = {
         'total': Alert.objects.count(),
-        'pending': Alert.objects.filter(status=AlertStatus.PENDING).count(),
-        'active': Alert.objects.filter(status=AlertStatus.IN_PROGRESS).count(),
+        'new': Alert.objects.filter(status=AlertStatus.PENDING).count(),
+        'dispatched': Alert.objects.filter(status=AlertStatus.ASSIGNED).count(),
+        'in_progress': Alert.objects.filter(status=AlertStatus.IN_PROGRESS).count(),
         'resolved': Alert.objects.filter(status=AlertStatus.RESOLVED).count(),
     }
     
@@ -182,11 +183,24 @@ def dashboard(request):
         'medical': ResponseUnit.objects.filter(unit_type=EmergencyType.MEDICAL).count(),
     }
     
+    
+    # Reports data (responder-submitted reports)
+    reports = Report.objects.all().select_related('alert', 'responder', 'response_unit').order_by('-timestamp')
+    
+    reports_stats = {
+        'total': Report.objects.count(),
+        'active': 0,  # Reports don't have active status, set to 0
+        'in_progress': 0,  # Reports don't have in_progress status, set to 0
+        'resolved': Report.objects.filter(outcome='RESOLVED').count(),
+    }
+    
     context = {
         'alerts': alerts,
         'alerts_stats': alerts_stats,
         'units': units,
         'units_stats': units_stats,
+        'reports': reports,
+        'reports_stats': reports_stats,
         'current_filter': status_filter,
         'current_tab': tab,
         'unit_type_filter': unit_type_filter,
@@ -313,6 +327,138 @@ class CustomLoginView(LoginView):
         elif self.request.user.profile.is_responder():
             return '/responder/'
         return '/'
+
+
+@require_http_methods(["GET"])
+def get_unit(request, unit_id):
+    """API endpoint to get unit data for editing."""
+    try:
+        unit = ResponseUnit.objects.get(unit_id=unit_id)
+        return JsonResponse({
+            'success': True,
+            'unit': {
+                'id': unit.unit_id,
+                'name': unit.unit_name,
+                'location': unit.current_location,
+                'status': unit.status,
+                'contact': unit.contact_info
+            }
+        })
+    except ResponseUnit.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Unit not found'}, status=404)
+
+
+@require_http_methods(["POST"])
+def update_unit(request, unit_id):
+    """API endpoint to update unit information."""
+    try:
+        unit = ResponseUnit.objects.get(unit_id=unit_id)
+        
+        # Update fields if provided
+        if 'location' in request.POST:
+            unit.current_location = request.POST['location']
+        if 'status' in request.POST:
+            unit.status = request.POST['status']
+        if 'contact' in request.POST:
+            unit.contact_info = request.POST['contact']
+        
+        unit.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Unit updated successfully'
+        })
+    except ResponseUnit.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Unit not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@require_http_methods(["GET"])
+def get_alert(request, alert_id):
+    """API endpoint to get alert data for editing."""
+    try:
+        alert = Alert.objects.get(alert_id=alert_id)
+        return JsonResponse({
+            'success': True,
+            'alert': {
+                'id': alert.alert_id,
+                'status': alert.status,
+                'emergency_type': alert.emergency_type,
+                'location': alert.location
+            }
+        })
+    except Alert.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Alert not found'}, status=404)
+
+
+@require_http_methods(["POST"])
+def create_unit(request):
+    """API endpoint to create a new response unit."""
+    try:
+        unit = ResponseUnit.objects.create(
+            unit_name=request.POST.get('unit_name'),
+            unit_type=request.POST.get('unit_type'),
+            current_location=request.POST.get('location'),
+            contact_info=request.POST.get('contact', ''),
+            status=UnitStatus.AVAILABLE
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Unit created successfully',
+            'unit_id': unit.unit_id
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
+
+@require_http_methods(["POST"])
+def create_user(request):
+    """API endpoint to create a new user with specified role."""
+    from django.contrib.auth.models import User
+    
+    try:
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        password_confirm = request.POST.get('password_confirm')
+        role = request.POST.get('role')
+        
+        # Validation
+        if not all([username, email, password, role]):
+            return JsonResponse({'success': False, 'error': 'Missing required fields'}, status=400)
+        
+        if password != password_confirm:
+            return JsonResponse({'success': False, 'error': 'Passwords do not match'}, status=400)
+        
+        if User.objects.filter(username=username).exists():
+            return JsonResponse({'success': False, 'error': 'Username already exists'}, status=400)
+        
+        if User.objects.filter(email=email).exists():
+            return JsonResponse({'success': False, 'error': 'Email already exists'}, status=400)
+        
+        # Create user
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+            first_name=request.POST.get('first_name', ''),
+            last_name=request.POST.get('last_name', '')
+        )
+        
+        # Set role in profile
+        profile = user.profile
+        profile.role = role
+        profile.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'User created successfully',
+            'user_id': user.id
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
 
 
 class CustomLogoutView(LogoutView):
