@@ -55,12 +55,13 @@ class Command(BaseCommand):
 
     def create_response_units(self):
         units_data = [
-            {'name': 'Police Unit 1', 'type': EmergencyType.POLICE, 'lat': 40.7128, 'lon': -74.0060},
-            {'name': 'Fire Truck 5', 'type': EmergencyType.FIRE, 'lat': 40.7138, 'lon': -74.0070},
-            {'name': 'Ambulance 3', 'type': EmergencyType.MEDICAL, 'lat': 40.7148, 'lon': -74.0050},
+            {'name': 'Police Unit 1', 'type': EmergencyType.POLICE, 'lat': 40.7128, 'lon': -74.0060, 'username': 'police_r1', 'pass': 'password123'},
+            {'name': 'Fire Truck 5', 'type': EmergencyType.FIRE, 'lat': 40.7138, 'lon': -74.0070, 'username': 'fire_r1', 'pass': 'password123'},
+            {'name': 'Ambulance 3', 'type': EmergencyType.MEDICAL, 'lat': 40.7148, 'lon': -74.0050, 'username': 'medical_r1', 'pass': 'password123'},
         ]
 
         for data in units_data:
+            # Create Unit
             unit, created = ResponseUnit.objects.get_or_create(
                 unit_name=data['name'],
                 defaults={
@@ -73,6 +74,27 @@ class Command(BaseCommand):
             )
             if created:
                 self.stdout.write(f"Created unit: {unit.unit_name}")
+
+            # Create User for this Unit
+            if not User.objects.filter(username=data['username']).exists():
+                user = User.objects.create_user(data['username'], f"{data['username']}@dears.com", data['pass'])
+                user.first_name = 'Responder'
+                user.last_name = data['name']
+                user.save()
+                
+                # Update Profile
+                user.profile.role = UserRole.RESPONDER
+                user.profile.assigned_unit = unit
+                user.profile.save()
+                
+                self.stdout.write(f"Created user {data['username']} linked to {unit.unit_name}")
+            else:
+                # Ensure existing user is linked (idempotency)
+                user = User.objects.get(username=data['username'])
+                if user.profile.assigned_unit != unit:
+                    user.profile.assigned_unit = unit
+                    user.profile.save()
+                    self.stdout.write(f"Linked existing user {data['username']} to {unit.unit_name}")
 
     def create_alerts(self):
         citizen = User.objects.get(username='citizen1')

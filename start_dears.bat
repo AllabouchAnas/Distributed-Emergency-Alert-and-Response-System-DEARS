@@ -4,17 +4,13 @@ echo Starting DEARS - Distributed Emergency Alert and Response System
 echo ================================================================
 echo.
 
-echo [1/3] Starting Dispatcher Service on port 8001...
-start "DEARS Dispatcher" cmd /k "cd app\servers && set DISPATCHER_PORT=8001 && python dispatcher_service\run.py"
-
-timeout /t 3 /nobreak > nul
-
-echo [2/3] Starting Response Services (Police, Fire, Medical)...
-start "DEARS Response Services" cmd /k "cd app\servers && python run_all_services.py"
+echo [1/2] Starting Server Services (Dispatcher, Police, Fire, Medical)...
+echo Dispatcher will run on Port 8001.
+start "DEARS Services" cmd /k "cd app\servers && set DISPATCHER_PORT=8001 && python run_all_services.py"
 
 timeout /t 5 /nobreak > nul
 
-echo [3/3] Starting Django Client Application...
+echo [2/2] Starting Django Client Application...
 start "DEARS Client" cmd /k "cd app\client && python manage.py runserver"
 
 echo.

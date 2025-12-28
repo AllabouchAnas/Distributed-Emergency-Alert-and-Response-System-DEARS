@@ -21,19 +21,37 @@ class FireService(rpyc.Service):
         
         db = SessionLocal()
         try:
-            new_alert = Alert(
-                user_id=user_id,
-                description=description,
-                location=location,
-                emergency_type=emergency_type,
-                status="PENDING",
-                latitude=latitude,
-                longitude=longitude
-            )
-            db.add(new_alert)
-            db.flush()
+            # 1. Find or Create alert record in database
+            # Check if alert already exists by UUID (alert_id arg)
+            import uuid
+            try:
+                alert_uuid_obj = uuid.UUID(str(alert_id))
+            except ValueError:
+                logger.error(f"Invalid UUID format: {alert_id}")
+                return "Invalid Alert ID"
+
+            existing_alert = db.query(Alert).filter(Alert.alert_uuid == alert_uuid_obj).first()
             
-            logger.info(f"Created alert in database with ID: {new_alert.alert_id}")
+            if existing_alert:
+                new_alert = existing_alert
+                logger.info(f"Found existing alert in database: ID={new_alert.alert_id} UUID={alert_id}")
+            else:
+                new_alert = Alert(
+                    user_id=user_id,
+                    description=description,
+                    location=location,
+                    emergency_type=emergency_type,
+                    status="PENDING",
+                    latitude=latitude,
+                    longitude=longitude,
+                    alert_uuid=alert_uuid_obj
+                )
+                db.add(new_alert)
+                db.commit()
+                db.refresh(new_alert)
+                logger.info(f"Created new alert in database with ID: {new_alert.alert_id}")
+            
+            # 2. Find available FIRE units
             
             # 2. Find available FIRE units
             stmt = select(ResponseUnit).where(

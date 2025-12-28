@@ -21,8 +21,11 @@
             <div class="nav-right">
                 <span class="nav-label">Responder Dashboard</span>
                 <div class="user-info">
-                    <span class="user-icon">👤</span>
-                    <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
+                    <a href="{% url 'profile' %}"
+                        style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 0.5rem;">
+                        <span class="user-icon">👤</span>
+                        <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
+                    </a>
                 </div>
                 <form method="post" action="{% url 'logout' %}" style="display: inline; margin: 0;">
                     {% csrf_token %}
@@ -44,7 +47,7 @@
             </div>
         </div>
         {% else %}
-        
+
         <!-- Unit Status Card -->
         <div class="unit-status-card">
             <h2 class="card-title">Your Unit</h2>
@@ -115,17 +118,15 @@
             <div class="action-buttons">
                 <form method="post" action="{% url 'update_unit_status' %}" class="action-form">
                     {% csrf_token %}
-                    <input type="hidden" name="action" value="en_route">
-                    <button type="submit" class="btn-action btn-en-route" 
-                            {% if unit.status != 'AVAILABLE' and active_alert.status != 'ASSIGNED' %}disabled{% endif %}>
-                        🚗 EN ROUTE
+                    <input type="hidden" name="action" value="on_scene">
+                    <button type="submit" class="btn-action btn-on-scene" {% if unit.status == 'ON_SCENE' %}disabled{% endif %}>
+                        📍 ON SCENE
                     </button>
                 </form>
                 <form method="post" action="{% url 'update_unit_status' %}" class="action-form">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="complete">
-                    <button type="submit" class="btn-action btn-complete" 
-                            {% if unit.status != 'EN_ROUTE' %}disabled{% endif %}>
+                    <button type="submit" class="btn-action btn-complete" {% if unit.status != 'ON_SCENE' %}disabled{% endif %}>
                         ✔ COMPLETE
                     </button>
                 </form>

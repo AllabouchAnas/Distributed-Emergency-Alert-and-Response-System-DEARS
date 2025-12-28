@@ -10,6 +10,7 @@ class AlertCreate(BaseModel):
     emergency_type: EmergencyType
     latitude: Optional[float] = None
     longitude: Optional[float] = None
+    alert_id: Optional[str] = None # UUID passed from client
     
     @field_validator('emergency_type', mode='before')
     @classmethod

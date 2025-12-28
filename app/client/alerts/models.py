@@ -146,6 +146,7 @@ class Alert(models.Model):
     Model matching 'Alert' entity in UML.
     """
     alert_id = models.AutoField(primary_key=True)  # alertID
+    alert_uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True) # UUID for external use
     timestamp = models.DateTimeField(db_default=Now())  # timestamp
     description = models.TextField()  # description
     location = models.CharField(max_length=255)  # location
