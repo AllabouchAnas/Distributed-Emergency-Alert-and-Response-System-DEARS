@@ -203,9 +203,7 @@
                 <h1>Admin Dashboard</h1>
                 <p class="text-muted">Monitor and manage alerts, reports, and response units</p>
             </div>
-            <button onclick="openCreateUserModal()" class="btn btn-primary">
-                <span style="margin-right: 0.5rem;">➕</span> Create User
-            </button>
+            <!-- Create User button moved to Users tab -->
         </div>
 
         <!-- Tabs -->
@@ -214,7 +212,7 @@
                 Reports</a>
             <a href="?tab=alerts" class="tab-btn {% if current_tab == 'alerts' %}active{% endif %}">🚨 Alerts</a>
             <a href="?tab=units" class="tab-btn {% if current_tab == 'units' %}active{% endif %}">🚑 Response Units</a>
-
+            <a href="?tab=users" class="tab-btn {% if current_tab == 'users' %}active{% endif %}">👥 Users</a>
         </div>
 
         <!-- Emergency Reports Tab -->
@@ -459,8 +457,8 @@
                     class="filter-btn {% if unit_type_filter == 'POLICE' %}active{% endif %}">🚔 Police
                     ({{units_stats.police }})</a>
                 <a href="?tab=units&unit_type=FIRE"
-                    class="filter-btn {% if unit_type_filter == 'FIRE' %}active{% endif %}">🚒 Fire ({{
-                    units_stats.fire}})</a>
+                    class="filter-btn {% if unit_type_filter == 'FIRE' %}active{% endif %}">🚒 Fire
+                    ({{units_stats.fire}})</a>
                 <a href="?tab=units&unit_type=MEDICAL"
                     class="filter-btn {% if unit_type_filter == 'MEDICAL' %}active{% endif %}">🚑 Medical
                     ({{units_stats.medical }})</a>
@@ -511,6 +509,96 @@
                     {% endfor %}
                 </tbody>
             </table>
+        </div>
+        {% endif %}
+
+        <!-- Users Tab -->
+        {% if current_tab == 'users' %}
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">Total Users</span>
+                    <span class="stat-icon">👥</span>
+                </div>
+                <div class="stat-value">{{ users_stats.total|default:0 }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">Citizens</span>
+                    <span class="stat-icon">👤</span>
+                </div>
+                <div class="stat-value">{{ users_stats.citizens|default:0 }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">Responders</span>
+                    <span class="stat-icon">🚑</span>
+                </div>
+                <div class="stat-value">{{ users_stats.responders|default:0 }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-title">Admins</span>
+                    <span class="stat-icon">🛡️</span>
+                </div>
+                <div class="stat-value">{{ users_stats.admins|default:0 }}</div>
+            </div>
+        </div>
+
+        <div class="card" style="padding: 1.5rem; margin: 1rem 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h2 style="margin: 0; font-size: 1.5rem;">User Management</h2>
+                <button onclick="openCreateUserModal()" class="btn btn-primary">
+                    <span style="margin-right: 0.5rem;">➕</span> Create User
+                </button>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Joined</th>
+                            <th>Last Login</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td style="font-weight: 500;">
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <div
+                                        style="width: 32px; height: 32px; background: var(--color-bg-secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                        {{ user.username|slice:":1"|upper }}
+                                    </div>
+                                    {{ user.username }}
+                                </div>
+                            </td>
+                            <td>{{ user.email }}</td>
+                            <td>
+                                {% if user.profile.role == 'ADMIN' %}
+                                <span class="badge" style="background: #ef4444; color: white;">Admin</span>
+                                {% elif user.profile.role == 'RESPONDER' %}
+                                <span class="badge" style="background: #3b82f6; color: white;">Responder</span>
+                                {% else %}
+                                <span class="badge" style="background: #10b981; color: white;">Citizen</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ user.date_joined|date:"M d, Y" }}</td>
+                            <td class="text-muted">{{ user.last_login|date:"M d, H:i"|default:"Never" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 2rem;">
+                                <div style="color: var(--color-text-muted);">No users found</div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
         {% endif %}
 

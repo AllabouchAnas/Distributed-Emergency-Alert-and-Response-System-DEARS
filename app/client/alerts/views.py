@@ -4,6 +4,7 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth import login
 from django.contrib import messages
 from django.http import JsonResponse
+from django.contrib.auth.models import User
 from django.views.decorators.http import require_POST, require_http_methods
 from django.db.models import Q
 import logging
@@ -206,7 +207,17 @@ def dashboard(request):
         'total': Report.objects.count(),
         'active': 0,  # Reports don't have active status, set to 0
         'in_progress': 0,  # Reports don't have in_progress status, set to 0
-        'resolved': Report.objects.filter(outcome='RESOLVED').count(),
+    'resolved': Report.objects.filter(outcome='RESOLVED').count(),
+    }
+
+    # Users data
+    users = User.objects.all().select_related('profile').order_by('-date_joined')
+    
+    users_stats = {
+        'total': User.objects.count(),
+        'citizens': User.objects.filter(profile__role='CITIZEN').count(),
+        'responders': User.objects.filter(profile__role='RESPONDER').count(),
+        'admins': User.objects.filter(profile__role='ADMIN').count(),
     }
     
     context = {
@@ -216,6 +227,8 @@ def dashboard(request):
         'units_stats': units_stats,
         'reports': reports,
         'reports_stats': reports_stats,
+        'users': users,
+        'users_stats': users_stats,
         'current_filter': status_filter,
         'current_tab': tab,
         'unit_type_filter': unit_type_filter,
