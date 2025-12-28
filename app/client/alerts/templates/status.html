@@ -14,10 +14,16 @@
                 {% elif report.emergency_type == 'MEDICAL' %}🚑
                 {% endif %}
             </div>
+            {% if is_fresh_submission %}
             <h1 style="font-size: 3rem; font-weight: 800; margin-bottom: 0.5rem; letter-spacing: -0.02em;">Alert
                 Submitted Successfully!</h1>
             <p class="text-muted" style="font-size: 1.1rem;">Real-time tracking for your emergency alert #{{
                 report.alert_uuid }}</p>
+            {% else %}
+            <h1 style="font-size: 3rem; font-weight: 800; margin-bottom: 0.5rem; letter-spacing: -0.02em;">Alert Status
+            </h1>
+            <p class="text-muted" style="font-size: 1.1rem;">Tracking emergency alert #{{ report.alert_uuid }}</p>
+            {% endif %}
         </div>
 
         <!-- Status Details -->
@@ -45,6 +51,7 @@
         </div>
 
         <!-- Dispatch Card -->
+        {% if is_fresh_submission %}
         <div class="dispatch-card">
             <div class="dispatch-icon">⏳</div>
             <div>
@@ -53,6 +60,7 @@
                     services. Units are being assigned.</p>
             </div>
         </div>
+        {% endif %}
 
         <!-- Safety Instructions -->
         <div class="safety-instructions-container">

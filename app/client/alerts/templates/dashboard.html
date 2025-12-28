@@ -63,6 +63,48 @@
     </div>
 </div>
 
+<!-- View Alert Modal -->
+<div id="viewAlertModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 600px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+            <h3 style="margin: 0;">Alert Details</h3>
+            <span id="viewAlertStatusBadge" class="badge"></span>
+        </div>
+
+        <div class="form-group">
+            <label style="color: var(--color-text-muted); font-size: 0.875rem;">Alert Type</label>
+            <div id="viewAlertType"
+                style="font-weight: 600; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem;"></div>
+        </div>
+
+        <div class="form-group">
+            <label style="color: var(--color-text-muted); font-size: 0.875rem;">Location</label>
+            <div id="viewAlertLocation" style="font-size: 1rem;"></div>
+        </div>
+
+        <div class="form-group">
+            <label style="color: var(--color-text-muted); font-size: 0.875rem;">Description</label>
+            <div id="viewAlertDescription"
+                style="padding: 1rem; background: var(--color-bg-secondary); border-radius: var(--radius-md); border: 1px solid var(--color-accent-subtle);">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label style="color: var(--color-text-muted); font-size: 0.875rem;">Reported By</label>
+            <div id="viewAlertUser"></div>
+        </div>
+
+        <div class="form-group">
+            <label style="color: var(--color-text-muted); font-size: 0.875rem;">Time</label>
+            <div id="viewAlertTime"></div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; margin-top: 2rem;">
+            <button type="button" onclick="closeViewAlertModal()" class="btn btn-primary">Close</button>
+        </div>
+    </div>
+</div>
+
 <!-- Create Response Unit Modal -->
 <div id="createUnitModal" class="modal" style="display: none;">
     <div class="modal-content">
@@ -119,6 +161,17 @@
                 <label for="newLastName">Last Name:</label>
                 <input type="text" id="newLastName" name="last_name" class="form-control">
             </div>
+
+            <div class="form-group">
+                <label for="newPhone">Phone Number:</label>
+                <input type="tel" id="newPhone" name="phone" class="form-control" placeholder="+1234567890">
+            </div>
+
+            <div class="form-group">
+                <label for="newAddress">Address:</label>
+                <textarea id="newAddress" name="address" class="form-control" rows="2"
+                    placeholder="Street, City, Country"></textarea>
+            </div>
             <div class="form-group">
                 <label for="newPassword">Password:</label>
                 <input type="password" id="newPassword" name="password" class="form-control" required>
@@ -161,7 +214,7 @@
                 Reports</a>
             <a href="?tab=alerts" class="tab-btn {% if current_tab == 'alerts' %}active{% endif %}">🚨 Alerts</a>
             <a href="?tab=units" class="tab-btn {% if current_tab == 'units' %}active{% endif %}">🚑 Response Units</a>
-           
+
         </div>
 
         <!-- Emergency Reports Tab -->
@@ -340,7 +393,8 @@
                         <td>{{ alert.timestamp|date:"M d, H:i" }}</td>
                         <td>
                             <div style="display: flex; gap: 0.5rem;">
-                                <a href="{% url 'status' alert.alert_uuid %}" class="btn-action btn-view">👁️</a>
+                                <button onclick="viewAlert('{{ alert.alert_id }}')"
+                                    class="btn-action btn-view">👁️</button>
                                 <button onclick="editAlert('{{ alert.alert_id }}')"
                                     class="btn-action btn-edit">✏️</button>
                                 <button onclick="deleteAlert('{{ alert.alert_id }}')"
@@ -536,29 +590,28 @@
         color: white;
     }
 
-    .badge-status-new {
-        background: var(--info);
+    .badge-status-pending {
+        background: #f97316;
+        /* Orange */
         color: white;
     }
 
-    .badge-status-dispatched {
-        background: var(--warning);
+    .badge-status-assigned {
+        background: #eab308;
+        /* Yellow */
         color: white;
     }
 
     .badge-status-in_progress {
-        background: #8b5cf6;
+        background: #3b82f6;
+        /* Blue */
         color: white;
     }
 
     .badge-status-resolved {
-        background: #d1fae5;
-        color: #065f46;
-    }
-
-    .badge-status-assigned {
-        background: #dbeafe;
-        color: #1e40af;
+        background: #22c55e;
+        /* Green */
+        color: white;
     }
 
     .badge-status-completed {
@@ -760,6 +813,38 @@
     }
 
     // Response Unit Actions
+    function viewAlert(alertId) {
+        fetch(`/alerts/get-alert/${alertId}/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const alert = data.alert;
+                    document.getElementById('viewAlertType').innerHTML =
+                        `<span class="badge badge-${alert.emergency_type.toLowerCase()}">${alert.emergency_type_display}</span>`;
+                    document.getElementById('viewAlertLocation').textContent = alert.location;
+                    document.getElementById('viewAlertDescription').textContent = alert.description;
+                    document.getElementById('viewAlertUser').textContent = alert.user;
+                    document.getElementById('viewAlertTime').textContent = alert.timestamp;
+
+                    const badge = document.getElementById('viewAlertStatusBadge');
+                    badge.className = `badge badge-status-${alert.status.toLowerCase()}`;
+                    badge.textContent = alert.status_display;
+
+                    document.getElementById('viewAlertModal').style.display = 'flex';
+                } else {
+                    alert('Error loading alert details');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to load alert details');
+            });
+    }
+
+    function closeViewAlertModal() {
+        document.getElementById('viewAlertModal').style.display = 'none';
+    }
+
     function viewUnit(unitId) {
         alert('View unit details - Unit ID: ' + unitId);
         // TODO: Implement unit details view

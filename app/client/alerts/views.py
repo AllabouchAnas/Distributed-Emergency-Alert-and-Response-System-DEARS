@@ -52,8 +52,19 @@ def register(request):
 @login_required
 def my_alerts(request):
     """View to list all alerts submitted by the current user."""
-    alerts = Alert.objects.filter(user=request.user).order_by('-timestamp')
-    return render(request, 'my_alerts.html', {'alerts': alerts})
+    # Get all alerts ordered by most recent first
+    all_alerts = Alert.objects.filter(user=request.user).order_by('-timestamp')
+    
+    # Deduplicate by alert_uuid, keeping only the most recent version of each alert
+    seen_uuids = set()
+    unique_alerts = []
+    
+    for alert in all_alerts:
+        if alert.alert_uuid not in seen_uuids:
+            seen_uuids.add(alert.alert_uuid)
+            unique_alerts.append(alert)
+    
+    return render(request, 'my_alerts.html', {'alerts': unique_alerts})
 
 
 @login_required
@@ -106,8 +117,8 @@ def declare_emergency(request):
             messages.success(request, f'Emergency alert declared successfully! Alert ID: {alert.alert_id}')
             messages.info(request, 'Emergency services have been notified. Help is on the way.')
             
-            # Redirect to status page
-            return redirect('status', report_id=alert.alert_uuid)
+            # Redirect to status page with fresh=true parameter
+            return redirect(f"{reverse('status', kwargs={'report_id': alert.alert_uuid})}?fresh=true")
     else:
         form = AlertForm()
     
@@ -132,9 +143,13 @@ def status_check(request, report_id):
             search_id = search_form.cleaned_data['report_id'] # Note: ReportSearchForm might need update for UUID vs Int
             return redirect('status', report_id=search_id)
     
+    # Check if this is a fresh submission (coming from alert submission) or viewing existing alert
+    is_fresh_submission = request.GET.get('fresh', '') == 'true'
+    
     context = {
         'report': report,
         'search_form': search_form,
+        'is_fresh_submission': is_fresh_submission,
     }
     
     return render(request, 'status.html', context)
@@ -376,7 +391,7 @@ def update_unit(request, unit_id):
 
 @require_http_methods(["GET"])
 def get_alert(request, alert_id):
-    """API endpoint to get alert data for editing."""
+    """API endpoint to get alert data for editing/viewing."""
     try:
         alert = Alert.objects.get(alert_id=alert_id)
         return JsonResponse({
@@ -384,8 +399,13 @@ def get_alert(request, alert_id):
             'alert': {
                 'id': alert.alert_id,
                 'status': alert.status,
+                'status_display': alert.get_status_display(),
                 'emergency_type': alert.emergency_type,
-                'location': alert.location
+                'emergency_type_display': alert.get_emergency_type_display(),
+                'location': alert.location,
+                'description': alert.description,
+                'user': alert.user.get_full_name() or alert.user.username,
+                'timestamp': alert.timestamp.strftime("%B %d, %Y - %H:%M")
             }
         })
     except Alert.DoesNotExist:
@@ -450,6 +470,13 @@ def create_user(request):
         # Set role in profile
         profile = user.profile
         profile.role = role
+        
+        # Save phone and address if provided
+        if request.POST.get('phone'):
+            profile.phone_number = request.POST.get('phone')
+        if request.POST.get('address'):
+            profile.address = request.POST.get('address')
+            
         profile.save()
         
         return JsonResponse({
