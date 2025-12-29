@@ -346,6 +346,32 @@ def delete_alert(request):
 
 
 @login_required
+@require_POST
+def delete_unit(request):
+    """Delete a response unit - admin only."""
+    # Check if user is admin
+    if not request.user.profile.is_admin():
+        return JsonResponse({'success': False, 'error': 'Access denied'}, status=403)
+    
+    unit_id = request.POST.get('unit_id')
+    
+    try:
+        unit = ResponseUnit.objects.get(unit_id=unit_id)
+        unit_name = unit.unit_name
+        unit.delete()
+        
+        logger.info(f"Response Unit {unit_id} ({unit_name}) deleted by {request.user.username}")
+        
+        return JsonResponse({'success': True, 'message': f'Response unit {unit_name} deleted successfully'})
+    
+    except ResponseUnit.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Response unit not found'}, status=404)
+    except Exception as e:
+        logger.error(f"Error deleting response unit: {str(e)}")
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required
 def alert_confirmation(request):
     """Display alert confirmation page with alert ID."""
     alert_id = request.session.pop('last_alert_id', None)

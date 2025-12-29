@@ -21,6 +21,7 @@ urlpatterns = [
     path('alerts/update-unit/<int:unit_id>/', views.update_unit, name='update_unit'),
     path('alerts/get-alert/<int:alert_id>/', views.get_alert, name='get_alert'),
     path('alerts/create-unit/', views.create_unit, name='create_unit'),
+    path('alerts/delete-unit/', views.delete_unit, name='delete_unit'),
     path('alerts/create-user/', views.create_user, name='create_user'),
     path('accounts/login/', views.CustomLoginView.as_view(), name='login'),
     path('accounts/profile/', views.profile, name='profile'),
