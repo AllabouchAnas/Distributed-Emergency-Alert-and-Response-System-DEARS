@@ -100,7 +100,7 @@
 
                 <!-- Location Coordinates -->
                 <div class="form-group">
-                    <label class="form-label">{{ form.latitude.label }}</label>
+                    <label class="form-label">{{ form.latitude.label }} *</label>
                     <div class="form-row">
                         <div>
                             {{ form.latitude }}
@@ -145,12 +145,40 @@
 <script>
     function getLocation() {
         if (navigator.geolocation) {
+            const button = event.target;
+            button.disabled = true;
+            button.textContent = '📍 Getting location...';
+            
             navigator.geolocation.getCurrentPosition(function (position) {
                 document.getElementById('{{ form.latitude.id_for_label }}').value = position.coords.latitude.toFixed(6);
                 document.getElementById('{{ form.longitude.id_for_label }}').value = position.coords.longitude.toFixed(6);
-                alert('Location captured successfully!');
+                
+                // Visual feedback without alert popup
+                button.textContent = '✓ Location captured';
+                button.style.background = 'var(--color-success)';
+                button.style.color = 'white';
+                
+                // Reset button after 2 seconds
+                setTimeout(() => {
+                    button.disabled = false;
+                    button.textContent = '📍 Use Current Location';
+                    button.style.background = '';
+                    button.style.color = '';
+                }, 2000);
             }, function (error) {
-                alert('Error getting location: ' + error.message);
+                button.disabled = false;
+                button.textContent = '❌ Location failed';
+                button.style.background = 'var(--color-error)';
+                button.style.color = 'white';
+                
+                console.error('Geolocation error:', error.message);
+                
+                // Reset button after 3 seconds
+                setTimeout(() => {
+                    button.textContent = '📍 Use Current Location';
+                    button.style.background = '';
+                    button.style.color = '';
+                }, 3000);
             });
         } else {
             alert('Geolocation is not supported by your browser.');

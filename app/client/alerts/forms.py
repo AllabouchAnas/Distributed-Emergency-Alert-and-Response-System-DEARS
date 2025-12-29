@@ -114,11 +114,13 @@ class AlertForm(forms.ModelForm):
                 'class': 'form-input',
                 'placeholder': 'e.g., 40.7128',
                 'step': '0.000001',
+                'required': True,
             }),
             'longitude': forms.NumberInput(attrs={
                 'class': 'form-input',
                 'placeholder': 'e.g., -74.0060',
                 'step': '0.000001',
+                'required': True,
             }),
             'description': forms.Textarea(attrs={
                 'class': 'form-textarea',
@@ -130,8 +132,8 @@ class AlertForm(forms.ModelForm):
         labels = {
             'emergency_type': 'Emergency Type',
             'location': 'Location Description',
-            'latitude': 'Latitude (Optional)',
-            'longitude': 'Longitude (Optional)',
+            'latitude': 'Latitude',
+            'longitude': 'Longitude',
             'description': 'Emergency Description',
         }
 

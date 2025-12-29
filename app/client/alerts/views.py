@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth import login
@@ -90,14 +91,18 @@ def declare_emergency(request):
             # Send alert to Dispatcher Service
             try:
                 # Prepare data for dispatcher
+                # Convert empty latitude/longitude to None to avoid validation errors
+                latitude = alert.latitude if alert.latitude is not None else None
+                longitude = alert.longitude if alert.longitude is not None else None
+                
                 alert_data = {
                     "alert_id": str(alert.alert_uuid), # Use UUID
                     "user_id": request.user.id,
                     "description": alert.description,
                     "location": alert.location,
                     "emergency_type": alert.emergency_type,
-                    "latitude": alert.latitude,
-                    "longitude": alert.longitude
+                    "latitude": latitude,
+                    "longitude": longitude
                 }
                 
                 # We need to implement this function since it was imported but not found in file view
@@ -108,12 +113,19 @@ def declare_emergency(request):
                 from django.conf import settings
                 
                 dispatcher_url = settings.DISPATCHER_SERVICE_URL
-                requests.post(dispatcher_url, json=alert_data, timeout=5)
+                response = requests.post(dispatcher_url, json=alert_data, timeout=5)
                 
+                # Check if the request was successful
+                if response.status_code not in [200, 201]:
+                    logger.error(f"Dispatcher returned error: {response.status_code} - {response.text}")
+                    messages.warning(request, 'Alert saved but there was an issue notifying emergency services. Our team has been alerted.')
+                
+            except requests.exceptions.RequestException as e:
+                logger.error(f"Failed to connect to dispatcher: {e}")
+                messages.warning(request, 'Alert saved but emergency services notification is delayed. Our team has been alerted.')
             except Exception as e:
-                logger.error(f"Failed to notify dispatcher: {e}")
-                # Don't fail the user request, just log it. 
-                # Ideally we should have a retry mechanism.
+                logger.error(f"Unexpected error notifying dispatcher: {e}")
+                messages.warning(request, 'Alert saved but there was an unexpected issue. Our team has been alerted.')
                 
             messages.success(request, f'Emergency alert declared successfully! Alert ID: {alert.alert_id}')
             messages.info(request, 'Emergency services have been notified. Help is on the way.')
