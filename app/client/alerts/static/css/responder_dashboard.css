@@ -354,6 +354,18 @@
     gap: 0.5rem;
 }
 
+.btn-en-route {
+    background: #f59e0b;
+    color: #ffffff;
+    box-shadow: 0 1px 3px rgba(245, 158, 11, 0.3);
+}
+
+.btn-en-route:hover:not(:disabled) {
+    background: #d97706;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(245, 158, 11, 0.3);
+}
+
 .btn-on-scene {
     background: #3b82f6;
     color: #ffffff;

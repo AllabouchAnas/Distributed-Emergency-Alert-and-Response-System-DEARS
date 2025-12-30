@@ -155,19 +155,32 @@
 
                 <!-- Action Buttons -->
                 <div class="action-buttons">
+                    <!-- Dynamic Status Button -->
                     <form method="post" action="{% url 'update_unit_status' %}" class="action-form">
                         {% csrf_token %}
+                        {% if unit.status == 'EN_ROUTE' %}
                         <input type="hidden" name="action" value="on_scene">
-                        <button type="submit" class="btn-action btn-on-scene" {% if unit.status == 'ON_SCENE' %}disabled{%
-                            endif %}>
+                        <button type="submit" class="btn-action btn-on-scene">
                             📍 ON SCENE
                         </button>
+                        {% elif unit.status == 'ON_SCENE' %}
+                        <input type="hidden" name="action" value="on_scene">
+                        <button type="submit" class="btn-action btn-on-scene" disabled>
+                            📍 ON SCENE
+                        </button>
+                        {% else %}
+                        <input type="hidden" name="action" value="en_route">
+                        <button type="submit" class="btn-action btn-en-route">
+                            � ON ROUTE
+                        </button>
+                        {% endif %}
                     </form>
+
+                    <!-- Complete Button -->
                     <form method="post" action="{% url 'update_unit_status' %}" class="action-form">
                         {% csrf_token %}
                         <input type="hidden" name="action" value="complete">
-                        <button type="submit" class="btn-action btn-complete" {% if unit.status != 'ON_SCENE'
-                            %}disabled{% endif %}>
+                        <button type="submit" class="btn-action btn-complete" {% if unit.status != 'ON_SCENE' %}disabled{% endif %}>
                             ✔ COMPLETE
                         </button>
                     </form>
@@ -204,8 +217,7 @@
             @media (max-width: 900px) {
                 .dashboard-content-grid {
                     grid-template-columns: 1fr;
-                }
-            }
+                }}
 
             .unit-status-card {
                 width: 100%;
@@ -293,14 +305,11 @@
             map.fitBounds(bounds, { padding: [50, 50] });
             if (bounds.length === 1) {
                 map.setZoom(15);
-            }
-        } else {
+            }} else {
             map.setView([0, 0], 2); // Default fallback
-        }
-    } catch (error) {
-        console.error('Map initialization error:', error);
-    }
-        });
+        }} catch (error) {
+            console.error('Map initialization error:', error);
+        }});
         {% endif %}
     </script>
 </body>
